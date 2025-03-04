@@ -1,72 +1,19 @@
 //Command to start: <npm start>
-import React, { useState } from "react";
-import axios from "axios";
+import React from 'react';
+import './App.css';
+import Login from './components/login/Login';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post(
-        "http://localhost:5000/submit",
-        formData
-      );
-      alert(response.data.message);
-      setFormData({ name: "", email: "", message: "" }); // Clear form
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
-  };
-
   return (
-    <div className="App">
-      <h1>Submit Your Information</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Name:</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div>
-          <label>Message:</label>
-          <textarea
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
-    </div>
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/home" element={<h1>Welcome to the Home Page!</h1>} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 
