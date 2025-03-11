@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 function LoginPage() {
     const [username, setUsername] = useState('');
@@ -6,7 +7,7 @@ function LoginPage() {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        // Here you would typically handle the login logic, e.g., sending a request to your backend
+        // Here you handle the login logic
         console.log('Username:', username);
         console.log('Password:', password);
     };
@@ -39,6 +40,9 @@ function LoginPage() {
                 </div>
                 <button type="submit" className="btn btn-primary w-100">Login</button>
             </form>
+            <div className="text-center mt-3">
+                <p>Don't have an account? <Link to="/signup">Create Account</Link></p>
+            </div>
         </div>
     );
 }
