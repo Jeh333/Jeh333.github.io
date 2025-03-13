@@ -2,66 +2,79 @@ import React, { useState } from "react";
 import axios from "axios";
 
 function FormPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    message: "",
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const [courseInput, setCourseInput] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Split the input into lines, removing empty lines
+    const lines = courseInput
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) {
+      alert("Please enter your course history.");
+      return;
+    }
+
+    const courses = [];
+
+    for (let i = 0; i < lines.length; i += 6) {
+      const course = {
+        programId: lines[i] || "",
+        description: lines[i + 1] || "",
+        semester: lines[i + 2] || "",
+        grade: lines[i + 3] || "",
+        credits: parseFloat(lines[i + 4]) || 0,
+        status: lines[i + 5] || "",
+      };
+
+      if (
+        !course.programId ||
+        !course.description ||
+        !course.semester ||
+        !course.grade ||
+        !course.credits ||
+        !course.status
+      ) {
+        alert(
+          `Invalid input format detected. Please ensure all fields are present for each course.`
+        );
+        return;
+      }
+
+      courses.push(course);
+    }
+
     try {
-      const response = await axios.post("http://localhost:5000/submit", formData);
-      alert(response.data.message); // Notify user
-      setFormData({ name: "", email: "", message: "" }); // Clear form
+      const response = await axios.post(
+        "http://localhost:5000/submit-course-history",
+        { courses }
+      );
+      alert(response.data.message);
+      setCourseInput("");
     } catch (error) {
-      console.error("Error submitting form:", error);
+      console.error("Error submitting course history:", error);
+      alert("Error submitting course history. Please try again.");
     }
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4 text-center">Submit Your Information</h2>
-      <form onSubmit={handleSubmit} className="card p-4 shadow-sm">
-        <div className="mb-3">
-          <label className="form-label">Name</label>
-          <input
-            type="text"
-            className="form-control"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input
-            type="email"
-            className="form-control"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Message</label>
+    <div>
+      <h2>Submit Your Course History</h2>
+      <form onSubmit={handleSubmit}>
+        <div>
           <textarea
-            className="form-control"
-            name="message"
-            value={formData.message}
-            onChange={handleChange}
-            rows="4"
+            value={courseInput}
+            onChange={(e) => setCourseInput(e.target.value)}
+            rows={20}
+            cols={50}
+            placeholder={`Paste your course history here (6 lines per course):\nExample:\nANTHRO 1300\nMULTICULTURALISM\n2022 Fall Semester\nA\n3.00\nTaken`}
             required
-          ></textarea>
+          />
         </div>
-        <button type="submit" className="btn btn-primary w-100">Submit</button>
+        <button type="submit">Submit</button>
       </form>
     </div>
   );
