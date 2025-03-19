@@ -51,6 +51,21 @@ const CourseHistorySchema = new mongoose.Schema({
 });
 
 const CourseHistory = mongoose.model("CourseHistory", CourseHistorySchema);
+// ✅ Add this GET route for fetching course histories
+app.get("/course-histories", async (req, res) => {
+  try {
+    const courseHistories = await CourseHistory.find().populate("userId"); // Fetch course histories
+
+    if (!courseHistories || courseHistories.length === 0) {
+      return res.status(404).json({ error: "No course history records found" });
+    }
+
+    res.status(200).json(courseHistories);
+  } catch (err) {
+    console.error("Error fetching course histories:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 app.post("/signup", async (req, res) => {
   try {
