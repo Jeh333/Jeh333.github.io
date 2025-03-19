@@ -3,11 +3,21 @@ import axios from "axios";
 
 function FormPage() {
   const [courseInput, setCourseInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Split the input into lines, removing empty lines
+    // Get userId and token from localStorage
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) {
+      alert("You must be logged in to submit course history.");
+      return;
+    }
+
+    // Split input into lines, removing empty lines
     const lines = courseInput
       .split(/\r?\n/)
       .map((line) => line.trim())
@@ -30,6 +40,7 @@ function FormPage() {
         status: lines[i + 5] || "",
       };
 
+      // Validate course structure
       if (
         !course.programId ||
         !course.description ||
@@ -47,16 +58,22 @@ function FormPage() {
       courses.push(course);
     }
 
+    setLoading(true);
+
     try {
       const response = await axios.post(
         "http://localhost:5000/submit-course-history",
-        { courses }
+        { userId, courses },
+        { headers: { Authorization: `Bearer ${token}` } } // Include JWT token
       );
+
       alert(response.data.message);
-      setCourseInput("");
+      setCourseInput(""); // Clear form on success
     } catch (error) {
       console.error("Error submitting course history:", error);
-      alert("Error submitting course history. Please try again.");
+      alert(error.response?.data?.error || "Error submitting course history.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,7 +91,9 @@ function FormPage() {
             required
           />
         </div>
-        <button type="submit">Submit</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Submitting..." : "Submit"}
+        </button>
       </form>
     </div>
   );

@@ -1,10 +1,13 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
 // Middleware
 app.use(cors());
@@ -13,43 +16,138 @@ app.use(express.json());
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI;
 mongoose
-  .connect(MONGO_URI)
+  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.log(err));
+  .catch((err) => {
+    console.error("MongoDB Connection Error:", err);
+    process.exit(1);
+  });
 
-// Define the Course Schema (individual courses within a course history)
+// Define User Schema
+const UserSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  courseHistory: { type: mongoose.Schema.Types.ObjectId, ref: "CourseHistory" },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const User = mongoose.model("User", UserSchema);
+
+// Define Course and CourseHistory Schema
 const CourseSchema = new mongoose.Schema({
   programId: { type: String, required: true },
   description: { type: String, required: true },
   semester: { type: String, required: true },
-  grade: { type: String, required: true },
-  credits: { type: Number, required: true },
+  grade: { type: String, required: true, match: /^[A-F][+-]?$/ },
+  credits: { type: Number, required: true, min: 0 },
   status: { type: String, enum: ["Taken", "Transferred"], required: true },
 });
 
-// Define the CourseHistory Schema (a single document containing all courses for one user)
 const CourseHistorySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   courses: { type: [CourseSchema], required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-// Create the CourseHistory model
 const CourseHistory = mongoose.model("CourseHistory", CourseHistorySchema);
 
-// Routes
-app.post("/submit-course-history", async (req, res) => {
+app.post("/signup", async (req, res) => {
   try {
-    const { courses } = req.body;
+    const { name, email, password } = req.body;
 
-    // Save the entire course history as a single document
-    const courseHistory = new CourseHistory({ courses });
-    await courseHistory.save();
+    let existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: "User already exists" });
+    }
 
-    res.status(201).json({ message: "Course history saved successfully!" });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ name, email, password: hashedPassword });
+
+    await newUser.save();
+
+    const token = jwt.sign(
+      { userId: newUser._id, email: newUser.email },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({
+      message: "User created successfully!",
+      token,
+      userId: newUser._id, // ✅ Include userId in response
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+app.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+
+    const token = jwt.sign(
+      { userId: user._id, email: user.email },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.status(200).json({
+      message: "Login successful!",
+      token,
+      userId: user._id, // ✅ Include userId in response
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+app.post("/submit-course-history", async (req, res) => {
+  try {
+    const { userId, courses } = req.body;
+
+    if (!userId || !courses || courses.length === 0) {
+      return res.status(400).json({ error: "Missing userId or courses" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    let courseHistory = await CourseHistory.findOne({ userId });
+
+    if (courseHistory) {
+      courseHistory.courses = courses;
+      await courseHistory.save();
+      return res.status(200).json({
+        message: "Course history updated successfully!",
+        courseHistory,
+      });
+    } else {
+      courseHistory = new CourseHistory({ userId, courses });
+      await courseHistory.save();
+      user.courseHistory = courseHistory._id;
+      await user.save();
+      return res.status(201).json({
+        message: "Course history saved successfully!",
+        courseHistory,
+      });
+    }
+  } catch (err) {
+    console.error("Error saving course history:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}); // ✅ Ensure this closing brace matches the function
+
 
 // Start the server
 app.listen(PORT, () => {
