@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-// Use Render URL in production, localhost for testing
+// Use the correct backend API URL
 const API_URL =
-  process.env.REACT_APP_API_URL ||
-  "https://jeh333-github-io.onrender.com:10000";
+  process.env.REACT_APP_API_URL || "https://your-backend.onrender.com";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
