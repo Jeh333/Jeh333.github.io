@@ -3,7 +3,7 @@ import axios from "axios";
 import { Bubble } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js/auto";
 
-// Determine API URL (Use Render in production, localhost for testing)
+// Determine API URL
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function VisualizationPage() {
