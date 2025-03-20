@@ -3,6 +3,9 @@ import axios from "axios";
 import { Bubble } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js/auto";
 
+// Determine API URL (Use Render in production, localhost for testing)
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 function VisualizationPage() {
   const [courseHistories, setCourseHistories] = useState([]);
   const [semesterIndexMap, setSemesterIndexMap] = useState(new Map());
@@ -12,9 +15,7 @@ function VisualizationPage() {
   useEffect(() => {
     const fetchCourseHistories = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/course-histories"
-        );
+        const response = await axios.get(`${API_URL}/course-histories`);
         setCourseHistories(response.data);
 
         // Extract unique semesters & assign numerical x-axis values
