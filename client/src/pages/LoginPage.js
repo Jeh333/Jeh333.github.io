@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+// Use Render URL in production, localhost for testing
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  "https://jeh333-github-io.onrender.com:10000";
+
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // For redirection after login
+  const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -14,29 +19,26 @@ function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/login", {
+      const response = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Save token and userId in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.userId); // ✅ Store userId
-
-        console.log("Stored userId:", localStorage.getItem("userId")); // Debugging
-
-        alert("Login successful!");
-        navigate("/visualizer"); // Redirect to visualization page
-      } else {
-        setError(data.error || "Invalid email or password.");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Invalid email or password.");
       }
+
+      const data = await response.json();
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userId", data.userId);
+
+      alert("Login successful!");
+      navigate("/visualizer");
     } catch (error) {
-      console.error("Login error:", error);
-      setError("Something went wrong. Please try again.");
+      console.error("Login error:", error.message);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
