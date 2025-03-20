@@ -51,7 +51,6 @@ const CourseHistorySchema = new mongoose.Schema({
 });
 
 const CourseHistory = mongoose.model("CourseHistory", CourseHistorySchema);
-// ✅ Add this GET route for fetching course histories
 app.get("/course-histories", async (req, res) => {
   try {
     const courseHistories = await CourseHistory.find().populate("userId"); // Fetch course histories
@@ -90,7 +89,7 @@ app.post("/signup", async (req, res) => {
     res.status(201).json({
       message: "User created successfully!",
       token,
-      userId: newUser._id, // ✅ Include userId in response
+      userId: newUser._id,
     });
   } catch (err) {
     console.error(err);
@@ -118,7 +117,7 @@ app.post("/login", async (req, res) => {
     res.status(200).json({
       message: "Login successful!",
       token,
-      userId: user._id, // ✅ Include userId in response
+      userId: user._id,
     });
   } catch (err) {
     console.error(err);
