@@ -5,13 +5,11 @@ import AppNavbar from "./components/Navbar";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import VisualizationPage from "./pages/VisualizationPage";
-import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
+import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
   return (
-    <Router basename="/">
-      {" "}
-      {/* ✅ Add basename */}
+    <Router>
       <AppNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -21,8 +19,7 @@ function App() {
         <Route
           path="/visualizer"
           element={<PrivateRoute element={<VisualizationPage />} />}
-        />{" "}
-        {/* Protected Route */}
+        />
       </Routes>
     </Router>
   );
