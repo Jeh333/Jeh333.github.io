@@ -4,6 +4,7 @@ import FormPage from "./pages/FormPage";
 import AppNavbar from "./components/Navbar"; 
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import FormPage_demo from './pages/FormPage_demo';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />  {/* Home now shows HomePage instead of form */}
         <Route path="/form" element={<FormPage />} />  {/* Form is now linked to /form */}
+        <Route path="/form-demo" element={<FormPage_demo />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
       </Routes>

@@ -50,6 +50,7 @@ function AppNavbar() {
             <Nav.Link as={Link} to="/about" style={{ color: "black" }}>About</Nav.Link>
             <Nav.Link as={Link} to="/contact" style={{ color: "black" }}>Contact</Nav.Link>
 
+
             <NavDropdown 
               title={isLoggedIn ? "My Account" : "Account"} 
               id="account-nav-dropdown" 
