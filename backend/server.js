@@ -9,14 +9,20 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const SECRET_KEY = process.env.JWT_SECRET || "your_secret_key";
 
-// Middleware
-app.use(cors());
+// CORS configuration for GitHub Pages
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://jeh333.github.io"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI;
 mongoose
-  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
   .catch((err) => {
     console.error("MongoDB Connection Error:", err);
@@ -51,14 +57,14 @@ const CourseHistorySchema = new mongoose.Schema({
 });
 
 const CourseHistory = mongoose.model("CourseHistory", CourseHistorySchema);
+
+// Routes
 app.get("/course-histories", async (req, res) => {
   try {
-    const courseHistories = await CourseHistory.find().populate("userId"); // Fetch course histories
-
+    const courseHistories = await CourseHistory.find().populate("userId");
     if (!courseHistories || courseHistories.length === 0) {
       return res.status(404).json({ error: "No course history records found" });
     }
-
     res.status(200).json(courseHistories);
   } catch (err) {
     console.error("Error fetching course histories:", err);
@@ -77,13 +83,14 @@ app.post("/signup", async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ name, email, password: hashedPassword });
-
     await newUser.save();
 
     const token = jwt.sign(
       { userId: newUser._id, email: newUser.email },
       SECRET_KEY,
-      { expiresIn: "1h" }
+      {
+        expiresIn: "1h",
+      }
     );
 
     res.status(201).json({
@@ -96,7 +103,6 @@ app.post("/signup", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 app.post("/login", async (req, res) => {
   try {
@@ -111,7 +117,9 @@ app.post("/login", async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       SECRET_KEY,
-      { expiresIn: "1h" }
+      {
+        expiresIn: "1h",
+      }
     );
 
     res.status(200).json({
@@ -124,7 +132,6 @@ app.post("/login", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 app.post("/submit-course-history", async (req, res) => {
   try {
@@ -160,8 +167,7 @@ app.post("/submit-course-history", async (req, res) => {
     console.error("Error saving course history:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
-}); // ✅ Ensure this closing brace matches the function
-
+});
 
 // Start the server
 app.listen(PORT, () => {
