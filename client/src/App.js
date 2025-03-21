@@ -9,7 +9,9 @@ import PrivateRoute from "./components/PrivateRoute"; // Import PrivateRoute
 
 function App() {
   return (
-    <Router>
+    <Router basename="/Jeh333.github.io">
+      {" "}
+      {/* ✅ Add basename */}
       <AppNavbar />
       <Routes>
         <Route path="/" element={<HomePage />} />
