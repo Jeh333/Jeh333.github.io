@@ -1,8 +1,10 @@
 const express = require("express");
+const multer = require("multer");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const PDFParser = require("pdf2json");
 require("dotenv").config();
 
 const app = express();
@@ -29,7 +31,6 @@ mongoose
     process.exit(1);
   });
 
-// Define User Schema
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -40,13 +41,20 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", UserSchema);
 
+const CourseListSchema = new mongoose.Schema({
+  _id: String,
+  program: String,
+  description: String,
+  Credits: String,
+  Prerequisites: String
+});
+
+const Course = mongoose.model("Course", CourseListSchema, "CourseList");
 // Define Course and CourseHistory Schema
 const CourseSchema = new mongoose.Schema({
   programId: { type: String, required: true },
-  description: { type: String, required: true },
   semester: { type: String, required: true },
-  grade: { type: String, required: true, match: /^[A-F][+-]?$/ },
-  credits: { type: Number, required: true, min: 0 },
+  grade: { type: String, required: true, match: /^[A-F][+-]?|W$/ },
   status: { type: String, enum: ["Taken", "Transferred"], required: true },
 });
 
@@ -58,20 +66,117 @@ const CourseHistorySchema = new mongoose.Schema({
 
 const CourseHistory = mongoose.model("CourseHistory", CourseHistorySchema);
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+//PDF Parser only accepts the courses below for now, more needs to be added
+const departments = ["Cmp Sc", "Infotc", "Nep", "Econom", "Math"];
 // Routes
-app.get("/course-histories", async (req, res) => {
-  try {
-    const courseHistories = await CourseHistory.find().populate("userId");
-    if (!courseHistories || courseHistories.length === 0) {
-      return res.status(404).json({ error: "No course history records found" });
-    }
-    res.status(200).json(courseHistories);
-  } catch (err) {
-    console.error("Error fetching course histories:", err);
-    res.status(500).json({ error: "Internal server error" });
+app.post("/upload", upload.single("pdf"), async (req, res) => {
+  const userId = req.body.userId;
+
+  if (!req.file || !userId) {
+    console.error("Missing file or user ID");
+    return res.status(400).json({ error: "File and user ID are required." });
   }
+
+  const pdfParser = new PDFParser();
+  pdfParser.parseBuffer(req.file.buffer);
+
+  pdfParser.on("pdfParser_dataReady", async (pdfData) => {
+    const text = extractTextFromPdfJson(pdfData);
+    const parsedCourses = extractCourses(text);
+
+    if (parsedCourses.length === 0) {
+      return res.status(400).json({ error: "No valid courses found." });
+    }
+
+    const formattedCourses = parsedCourses.map(course => ({
+      programId: course.departmentCourse,
+      semester: course.term,
+      grade: course.grade,
+      status: "Taken"
+    }));
+
+    try {
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      let courseHistory = await CourseHistory.findOne({ userId });
+
+      if (courseHistory) {
+        courseHistory.courses.push(...formattedCourses);
+        await courseHistory.save();
+      } else {
+        courseHistory = new CourseHistory({ userId, courses: formattedCourses });
+        await courseHistory.save();
+        user.courseHistory = courseHistory._id;
+        await user.save();
+      }
+
+      res.json({ message: "Courses added to history!", courses: formattedCourses });
+    } catch (err) {
+      console.error("DB Error:", err);
+      res.status(500).json({ error: "Failed to save courses." });
+    }
+  });
+
+  pdfParser.on("pdfParser_dataError", err => {
+    console.error("PDF Parsing Error:", err.parserError);
+    res.status(500).json({ error: "Error parsing the PDF." });
+  });
 });
 
+function extractTextFromPdfJson(pdfData) {
+  return pdfData.Pages.map(page =>
+    page.Texts.map(textObj => decodeURIComponent(textObj.R[0].T)).join(" ")
+  ).join(" ");
+}
+
+function extractCourses(text) {
+  const courses = [];
+  const semesterRegex = /(FALL|SPNG|SUM)\s*(\d{4})\s*Local Campus Credits Ugrd[\s\S]*?(?=FALL|SPNG|SUM|\bMissouri Civics Examination\b|$)/g;
+
+  let match;
+  while ((match = semesterRegex.exec(text)) !== null) {
+    let semester = `${match[1]} ${match[2]}`;
+    let sectionText = match[0];
+
+    console.log(`Found Semester Section: ${semester}`);
+    console.log(`Extracted Section Text (First 300 chars):\n${sectionText.substring(0, 300)}\n`);
+
+    let courseRegex = new RegExp(
+      `(${departments.join("|")})\\s+(\\d{4}[WH]?)\\s+([A-Za-z &\\-\\d\/]+?)\\s+([A-FIPW][+-]?)\\s+(\\d+\\.\\d+)`,
+      "g"
+    );
+
+    let courseMatch;
+    let foundCourses = false;
+
+    while ((courseMatch = courseRegex.exec(sectionText)) !== null) {
+      foundCourses = true;
+
+      let course = {
+        term: semester,
+        departmentCourse: `${courseMatch[1]} ${courseMatch[2]}`,
+        title: courseMatch[3].replace(/\s+/g, " ").trim(),
+        grade: courseMatch[4],
+        credits: courseMatch[5]
+      };
+
+      console.log(`Matched Course:`, course);
+      courses.push(course);
+    }
+
+    if (!foundCourses) {
+      console.warn(`No valid courses found in ${semester}.`);
+    }
+  }
+
+  return courses;
+}
+
+// Authentication and course history endpoints remain unchanged...
 app.post("/signup", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -144,10 +249,22 @@ app.post("/submit-course-history", async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
+    for (const course of courses) {
+      const normalizedId = course.programId.replace(/\u00A0/g, ' ').normalize("NFC").trim();
+      const altId = normalizedId.replace(/ /g, '\u00A0');
+      const exists = await Course.findOne({ $or: [
+        { _id: normalizedId },
+        { _id: altId }
+      ]});
+      if (!exists) {
+        return res.status(400).json({ error: `Course ${normalizedId} not found.` });
+      }
+    }
+
     let courseHistory = await CourseHistory.findOne({ userId });
 
     if (courseHistory) {
-      courseHistory.courses = courses;
+      courseHistory.courses.push(...courses);
       await courseHistory.save();
       return res.status(200).json({
         message: "Course history updated successfully!",
@@ -169,7 +286,17 @@ app.post("/submit-course-history", async (req, res) => {
   }
 });
 
-// Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.get("/course-histories", async (req, res) => {
+  try {
+    const courseHistories = await CourseHistory.find().populate("userId");
+    if (!courseHistories || courseHistories.length === 0) {
+      return res.status(404).json({ error: "No course history records found" });
+    }
+    res.status(200).json(courseHistories);
+  } catch (err) {
+    console.error("Error fetching course histories:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
+
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
