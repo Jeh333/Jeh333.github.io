@@ -1,169 +1,165 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useRef } from "react";
+import * as d3 from "d3";
 import axios from "axios";
-import { Bubble } from "react-chartjs-2";
-import { Chart as ChartJS } from "chart.js/auto";
 
-// Determine API URL
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 function VisualizationPage() {
-  const [courseHistories, setCourseHistories] = useState([]);
-  const [semesterIndexMap, setSemesterIndexMap] = useState(new Map());
-  const [selectedSemester, setSelectedSemester] = useState(null);
+  const svgRef = useRef();
 
-  // Fetch course histories from the backend
   useEffect(() => {
-    const fetchCourseHistories = async () => {
+    const fetchDataAndRender = async () => {
       try {
-        const response = await axios.get(`${API_URL}/course-histories`);
-        setCourseHistories(response.data);
+        const res = await axios.get(`${API_URL}/course-histories`);
+        const histories = res.data;
 
-        // Extract unique semesters & assign numerical x-axis values
-        const semesters = [
-          ...new Set(
-            response.data.flatMap((history) =>
-              history.courses.map((c) => c.semester)
-            )
-          ),
-        ].sort();
-        const semesterMap = new Map(semesters.map((sem, i) => [sem, i + 1]));
-        setSemesterIndexMap(semesterMap);
-      } catch (error) {
-        console.error("Error fetching course histories:", error);
-      }
-    };
+        const nodes = [];
+        const links = [];
+        const nodeSet = new Set();
 
-    fetchCourseHistories();
-  }, []);
+        histories.forEach((history) => {
+          history.courses.forEach((course) => {
+            const semester = course.semester;
+            const courseId = course.programId;
+            const uniqueCourseId = `${courseId} (${semester})`;
 
-  // Helper function to generate random colors
-  const getRandomColor = useMemo(() => {
-    const colorCache = new Map();
-    return (key) => {
-      if (!colorCache.has(key)) {
-        const r = Math.floor(Math.random() * 255);
-        const g = Math.floor(Math.random() * 255);
-        const b = Math.floor(Math.random() * 255);
-        colorCache.set(key, `rgba(${r}, ${g}, ${b}, 0.6)`);
-      }
-      return colorCache.get(key);
-    };
-  }, []);
+            if (!nodeSet.has(semester)) {
+              nodes.push({ id: semester, group: "semester" });
+              nodeSet.add(semester);
+            }
 
-  // Process data for visualization
-  const processData = useMemo(() => {
-    if (!selectedSemester) {
-      // Show semesters as large bubbles initially
-      const semesterCounts = new Map();
-      const totalStudents = courseHistories.length;
+            if (!nodeSet.has(uniqueCourseId)) {
+              nodes.push({
+                id: uniqueCourseId,
+                group: "course",
+                grade: course.grade,
+              });
+              nodeSet.add(uniqueCourseId);
+            }
 
-      courseHistories.forEach((history) => {
-        history.courses.forEach((course) => {
-          const semesterKey = course.semester;
-          if (!semesterCounts.has(semesterKey)) {
-            semesterCounts.set(semesterKey, 0);
-          }
-          semesterCounts.set(semesterKey, semesterCounts.get(semesterKey) + 1);
+            links.push({ source: semester, target: uniqueCourseId });
+          });
         });
-      });
 
-      return [...semesterCounts.entries()].map(([semester, count]) => ({
-        x: semesterIndexMap.get(semester) || Math.random() * 10 + 20, // Spread out for visibility
-        y: Math.random() * 40 + 30, // Center vertically
-        r: (count / totalStudents) * 40 + 20, // ✅ Increase bubble size
-        label: semester,
-        semester, // Store semester for interaction
-        backgroundColor: getRandomColor(semester),
-      }));
-    }
+        drawGraph(nodes, links);
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
+    };
 
-    // If a semester is selected, show courses in that semester
-    const courseCounts = new Map();
-    const totalStudents = courseHistories.length;
+    const drawGraph = (nodes, links) => {
+      const width = window.innerWidth;
+      const height = window.innerHeight * 0.75;
 
-    courseHistories.forEach((history) => {
-      history.courses.forEach((course) => {
-        if (course.semester === selectedSemester) {
-          if (!courseCounts.has(course.description)) {
-            courseCounts.set(course.description, 0);
+      const svg = d3
+        .select(svgRef.current)
+        .attr("width", width)
+        .attr("height", height);
+
+      svg.selectAll("*").remove(); // Clear previous graph
+
+      // Container for zoom and pan
+      const container = svg.append("g");
+
+      // Enable zoom and pan
+      svg.call(
+        d3.zoom().on("zoom", (event) => {
+          container.attr("transform", event.transform);
+        })
+      );
+
+      // Simulation setup
+      const simulation = d3
+        .forceSimulation(nodes)
+        .force(
+          "link",
+          d3
+            .forceLink(links)
+            .id((d) => d.id)
+            .distance(100)
+        )
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force("center", d3.forceCenter(width / 2, height / 2));
+
+      // Draw links
+      const link = container
+        .append("g")
+        .attr("stroke", "#aaa")
+        .attr("stroke-opacity", 0.6)
+        .selectAll("line")
+        .data(links)
+        .join("line")
+        .attr("stroke-width", 1.5);
+
+      // Draw nodes
+      const node = container
+        .append("g")
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 1.5)
+        .selectAll("circle")
+        .data(nodes)
+        .join("circle")
+        .attr("r", 8)
+        .attr("fill", (d) => (d.group === "semester" ? "#1f77b4" : "#ff7f0e"))
+        .on("click", (event, d) => {
+          if (d.group === "course") {
+            alert(`${d.id}\nGrade: ${d.grade}`);
+          } else {
+            alert(`Semester: ${d.id}`);
           }
-          courseCounts.set(
-            course.description,
-            courseCounts.get(course.description) + 1
-          );
-        }
-      });
-    });
+        })
+        .call(
+          d3
+            .drag()
+            .on("start", (event, d) => {
+              if (!event.active) simulation.alphaTarget(0.3).restart();
+              d.fx = d.x;
+              d.fy = d.y;
+            })
+            .on("drag", (event, d) => {
+              d.fx = event.x;
+              d.fy = event.y;
+            })
+            .on("end", (event, d) => {
+              if (!event.active) simulation.alphaTarget(0);
+              d.fx = null;
+              d.fy = null;
+            })
+        );
 
-    return [...courseCounts.entries()].map(([course, count]) => ({
-      x: Math.random() * 10 + 45, // Spread courses randomly in X-axis
-      y: Math.random() * 20 + 40, // Spread courses randomly in Y-axis
-      r: (count / totalStudents) * 20 + 5, // Scale bubble size
-      label: course,
-      backgroundColor: getRandomColor(course),
-    }));
-  }, [courseHistories, selectedSemester, semesterIndexMap, getRandomColor]);
+      // Add labels
+      const label = container
+        .append("g")
+        .selectAll("text")
+        .data(nodes)
+        .join("text")
+        .text((d) => d.id)
+        .attr("font-size", 10)
+        .attr("dx", 10)
+        .attr("dy", ".35em");
+
+      // Tick update
+      simulation.on("tick", () => {
+        link
+          .attr("x1", (d) => d.source.x)
+          .attr("y1", (d) => d.source.y)
+          .attr("x2", (d) => d.target.x)
+          .attr("y2", (d) => d.target.y);
+
+        node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+        label.attr("x", (d) => d.x).attr("y", (d) => d.y);
+      });
+    };
+
+    fetchDataAndRender();
+  }, []);
 
   return (
     <div>
-      <h2>Course History Visualization</h2>
-      <div style={{ width: "100vw", height: "80vh", margin: "0 auto" }}>
-        <Bubble
-          data={{
-            datasets: [
-              {
-                label: selectedSemester
-                  ? `Courses in ${selectedSemester}`
-                  : "Semesters",
-                data: processData,
-                backgroundColor: processData.map((d) => d.backgroundColor),
-              },
-            ],
-          }}
-          options={{
-            onClick: (event, elements) => {
-              if (elements.length > 0) {
-                const index = elements[0].index;
-                const clickedData = processData[index];
-
-                if (!selectedSemester) {
-                  // Clicked a semester, drill down to courses
-                  setSelectedSemester(clickedData.semester);
-                } else {
-                  // Clicked a course, reset view
-                  setSelectedSemester(null);
-                }
-              }
-            },
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: {
-              duration: 0, // Prevents transition lag
-            },
-            scales: {
-              x: {
-                display: false, // ✅ Hide X-axis
-              },
-              y: {
-                display: false, // ✅ Hide Y-axis
-              },
-            },
-            plugins: {
-              legend: {
-                display: false, // ✅ Hide legend
-              },
-              tooltip: {
-                callbacks: {
-                  label: (context) => {
-                    const data = context.raw;
-                    return `${data.label}`;
-                  },
-                },
-              },
-            },
-          }}
-        />
-      </div>
+      <h2 style={{ textAlign: "center", marginTop: "1rem" }}>
+        Course Visualizer
+      </h2>
+      <svg ref={svgRef} style={{ display: "block", margin: "0 auto" }}></svg>
     </div>
   );
 }

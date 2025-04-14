@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+
+const API_URL =
+  process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
+
 function SignupPage() {
   const [formData, setFormData] = useState({
     email: "",
@@ -48,7 +52,7 @@ function SignupPage() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:5000/signup", {
+      const response = await fetch(`${API_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -63,7 +67,7 @@ function SignupPage() {
       if (response.ok) {
         // Save token and userId in localStorage
         localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.userId); // ✅ Store userId
+        localStorage.setItem("userId", data.userId);
 
         console.log("Stored userId:", localStorage.getItem("userId")); // Debugging
 
