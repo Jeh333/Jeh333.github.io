@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import FormPage from "./pages/FormPage";
+import FormPage_demo from "./pages/FormPage_demo";
 import AppNavbar from "./components/Navbar";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/form" element={<FormPage />} />
+        <Route path="/form-demo" element={<FormPage_demo />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route
