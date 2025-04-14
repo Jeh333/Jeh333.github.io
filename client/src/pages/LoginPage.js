@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 // Use the correct backend API URL
 const API_URL =
-  process.env.REACT_APP_API_URL || "https://your-backend.onrender.com";
+  process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
