@@ -37,7 +37,7 @@ const upload = multer({ dest: "uploads/" });
 
 // Define User Schema
 const UserSchema = new mongoose.Schema({
-  username: { type: String, unique: true }, // <-- Added this
+  username: { type: String }, // <-- Added this
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -68,7 +68,7 @@ const CourseSchema = new mongoose.Schema({
 const CourseHistorySchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   courses: { type: [CourseSchema], required: true },
-  major: { type: String, required: true },
+  major: { type: String},
   createdAt: { type: Date, default: Date.now },
 });
 
