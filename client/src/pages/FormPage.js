@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import { auth } from "../firebase";
 
 function FormPage() {
   const [formData, setFormData] = useState({
@@ -280,29 +281,35 @@ function FormPage() {
   };
 
   const handleFileSubmit = async (e) => {
-    e.preventDefault(); 
-
+    e.preventDefault();
     if (!selectedFile) {
       alert("Please select a file.");
       return;
     }
-
-    const formData = new FormData();
-    formData.append("pdf", selectedFile);
-    formData.append("userId", localStorage.getItem("userId"));
-
+  
     try {
-      const response = await fetch("http://localhost:5000/upload", {
+      // 1) Get Firebase ID token
+      const idToken = await auth.currentUser.getIdToken();
+  
+      // 2) Build FormData
+      const fd = new FormData();
+      fd.append("pdf", selectedFile);
+  
+      // 3) POST to localhost:5000/upload with token
+      const res = await fetch("http://localhost:5000/upload", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Authorization": `Bearer ${idToken}`,
+        },
+        body: fd,
       });
-
-      const data = await response.json();
-      if (response.ok) {
-        alert("Upload successful!");
-        console.log(data);
+  
+      const body = await res.json();
+      if (res.ok) {
+        alert("Upload successful! Courses parsed: " + body.courseCount);
+        console.log(body);
       } else {
-        alert("Upload failed: " + data.error);
+        alert("Upload failed: " + body.error);
       }
     } catch (err) {
       console.error("Network error:", err);

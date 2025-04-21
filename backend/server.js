@@ -81,7 +81,7 @@ const CourseSchema = new mongoose.Schema({
   grade: {
     type: String,
     required: true,
-    match: /^(A|A-|A\+|B|B-|B\+|C|C-|C\+|D|D-|D\+|F|W|IP)$/,
+    match: /^(A|A-|A\+|B|B-|B\+|C|C-|C\+|D|D-|D\+|F|W|IP|S)$/,
   },
   description: { type: String }, 
   credits: { type: Number, min: 0 }, 
@@ -92,11 +92,11 @@ const CourseSchema = new mongoose.Schema({
 });
 
 
+// Store course histories by Firebase UID instead of ObjectId
 const CourseHistorySchema = new mongoose.Schema({
-  firebaseUid: { type: String, ref: "User", required: true }, // Reference Firebase UID instead of ObjectId
-  courses: { type: [CourseSchema], required: true },
-  major: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+  firebaseUid: { type: String, required: true, index: true },
+  courses:     { type: [CourseSchema], required: true },
+  createdAt:   { type: Date, default: Date.now },
 });
 
 const CourseHistory = mongoose.model("CourseHistory", CourseHistorySchema);
@@ -127,14 +127,15 @@ app.get("/courses/:programId", async (req, res) => {
 
 app.get("/course-histories", async (req, res) => {
   try {
-    const courseHistories = await CourseHistory.find().populate("userId");
-    if (!courseHistories || courseHistories.length === 0) {
+    // No populate needed when keying by firebaseUid
+    const courseHistories = await CourseHistory.find();
+    if (!courseHistories.length) {
       return res.status(404).json({ error: "No course history records found" });
     }
-    res.status(200).json(courseHistories);
+    return res.status(200).json(courseHistories);
   } catch (err) {
     console.error("Error fetching course histories:", err);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -220,35 +221,31 @@ app.post("/users/login", verifyFirebaseToken, async (req, res) => {
   }
 });
 
-app.post("/submit-course-history", async (req, res) => {
+// SUBMIT COURSE HISTORY by Firebase UID
+app.post("/submit-course-history", verifyFirebaseToken, async (req, res) => {
+  console.log("▶︎ /submit-course-history hit");
+  console.log("   uid:", req.firebaseUid, " body:", req.body);
+  const { courses }    = req.body;
+  const firebaseUid     = req.firebaseUid;
+
+  if (!Array.isArray(courses) || !courses.length) {
+    return res.status(400).json({ error: "Missing courses" });
+  }
+
   try {
-    const { firebaseUid, courses } = req.body;
-
-    if (!firebaseUid || !courses || courses.length === 0) {
-      return res.status(400).json({ error: "Missing firebaseUid or courses" });
-    }
-
-    const user = await User.findOne({ firebaseUid });
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    let courseHistory = await CourseHistory.findOne({ userId: user._id });
-
-    if (courseHistory) {
-      courseHistory.courses = courses;
-      await courseHistory.save();
-      return res.status(200).json({
-        message: "Course history updated successfully!",
-        courseHistory,
-      });
+    // Upsert course history document keyed by firebaseUid
+    let hist = await CourseHistory.findOne({ firebaseUid });
+    if (hist) {
+      hist.courses = courses;
+      await hist.save();
+      return res
+        .status(200)
+        .json({ message: "Course history updated", courseHistory: hist });
     } else {
-      courseHistory = new CourseHistory({ userId: user._id, courses });
-      await courseHistory.save();
-      user.courseHistory = courseHistory._id;
-      await user.save();
-      return res.status(201).json({
-        message: "Course history saved successfully!",
-        courseHistory,
-      });
+      hist = await CourseHistory.create({ firebaseUid, courses });
+      return res
+        .status(201)
+        .json({ message: "Course history created", courseHistory: hist });
     }
   } catch (err) {
     console.error("Error saving course history:", err);
@@ -257,76 +254,78 @@ app.post("/submit-course-history", async (req, res) => {
 });
 
 
-app.post("/upload", upload.single("pdf"), async (req, res) => {
-  try {
-    const firebaseUid = req.body.firebaseUid;
-    const file = req.file;
 
-    if (!firebaseUid || !file) {
-      return res.status(400).json({ error: "Missing firebaseUid or file" });
-    }
+app.post("/upload", verifyFirebaseToken, upload.single("pdf"), async (req, res) => {
+    try {
+      // Pull UID from the verified Firebase token
+      const firebaseUid = req.firebaseUid;
+      const file        = req.file;
 
-    const user = await User.findOne({ firebaseUid });
-    if (!user) return res.status(404).json({ error: "User not found" });
+      // If no token or no file, fail early
+      if (!firebaseUid) {
+        return res.status(401).json({ error: "Invalid or missing token" });
+      }
+      if (!file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
 
-    const dataBuffer = fs.readFileSync(file.path);
-    const pdfData = await pdfParse(dataBuffer);
-    const extractedText = pdfData.text;
+      // (Optional) Verify user exists
+      const user = await User.findOne({ firebaseUid });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
 
-    console.log("Extracted PDF text:\n", extractedText);
+      // Read & parse the PDF
+      const dataBuffer   = fs.readFileSync(file.path);
+      const pdfData      = await pdfParse(dataBuffer);
+      const lines        = pdfData.text.split("\n").map(l => l.trim()).filter(Boolean);
 
-    const lines = extractedText
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
+      // Your existing regex for extracting courses
+      const courseRegex = /^([A-Z]{2}\d{2})\s+([A-Z_]+)\s+([\dA-Z]+)\s+([\d.]+)\s+([A-Z][+-]?|IP|S)\s+[A-Z]+\s+(.*)$/;
 
-    const courseRegex =
-      /^([A-Z]{2}\d{2})\s+([A-Z_]+)\s+([\dA-Z]+)\s+([\d.]+)\s+([A-Z][+-]?|IP)\s+[A-Z]+\s+(.*)$/;
+      const courses = [];
+      for (const line of lines) {
+        const match = line.match(courseRegex);
+        if (match) {
+          const [, semester, subject, number, credits, grade] = match;
+          // Skip withdrawals and zero‑credit courses
+          if (grade === "W" || parseFloat(credits) === 0) continue;
+          courses.push({ programId: `${subject} ${number}`, semester, grade });
+        }
+      }
 
-    const courses = [];
+      if (courses.length === 0) {
+        return res.status(400).json({ error: "No valid courses found in PDF" });
+      }
 
-    for (const line of lines) {
-      const match = line.match(courseRegex);
-      if (match) {
-        const [_, semester, subject, number, credits, grade, description] = match;
-
-        if (grade === "W" || parseFloat(credits) === 0) continue;
-
-        courses.push({
-          programId: `${subject} ${number}`,
-          semester,
-          grade,
+      // ─── Upsert CourseHistory by firebaseUid ───
+      let courseHistory = await CourseHistory.findOne({ firebaseUid });
+      if (courseHistory) {
+        // Update existing
+        courseHistory.courses = courses;
+        await courseHistory.save();
+      } else {
+        // Create new, always include firebaseUid
+        courseHistory = await CourseHistory.create({
+          firebaseUid,
+          courses,
         });
       }
+      // ────────────────────────────────────────────
+
+      // Clean up and respond
+      fs.unlinkSync(file.path);
+      return res.status(200).json({
+        message: "PDF parsed and course history saved",
+        courseCount: courses.length,
+      });
+    } catch (err) {
+      console.error("Upload error:", err);
+      return res.status(500).json({ error: "Error processing PDF upload" });
     }
-
-    if (courses.length === 0) {
-      return res.status(400).json({ error: "No valid courses found in PDF" });
-    }
-
-    let courseHistory = await CourseHistory.findOne({ userId: user._id });
-    if (courseHistory) {
-      courseHistory.courses = courses;
-      await courseHistory.save();
-    } else {
-      courseHistory = new CourseHistory({ userId: user._id, courses });
-      await courseHistory.save();
-
-      user.courseHistory = courseHistory._id;
-      await user.save();
-    }
-
-    fs.unlinkSync(file.path);
-
-    return res.status(200).json({
-      message: "PDF parsed and course history saved",
-      courseCount: courses.length,
-    });
-  } catch (err) {
-    console.error("Upload error:", err);
-    return res.status(500).json({ error: "Error processing PDF upload" });
   }
-});
+);
+
 
 // Start the server
 app.listen(PORT, () => {
