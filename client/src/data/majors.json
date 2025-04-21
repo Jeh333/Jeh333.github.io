@@ -1,0 +1,1803 @@
+[
+  {
+    "name": "Accountancy",
+    "types": [
+      "BSAcc",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Addiction Studies",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Aerospace Engineering",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Aerospace Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Agribusiness Management",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Agricultural Education",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Agricultural Education (Communications & Leadership)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Agricultural Education (Teacher Certification)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Agricultural Engineering",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Agricultural Leadership",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Agricultural Systems Technology",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Agriculture",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "American Constitutional Democracy",
+    "types": [
+      "Minor",
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Ancient Mediterranean Studies",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Animal Sciences",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Anthropology",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Applied Child and Youth Development",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Archeology",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Architectural Studies",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Architectural Studies (Architectural Studies)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Architectural Studies (Design Studies)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Architectural Studies (Interior Design)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Art",
+    "types": [
+      "BA",
+      "BFA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Art History",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Arts Entrepreneurship",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Astronomy",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Biochemistry",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Biological Engineering",
+    "types": [
+      "BSBE"
+    ]
+  },
+  {
+    "name": "Biological Sciences",
+    "types": [
+      "BA",
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Biological Sciences (Medical Science and Human Biology)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Biomaterials Engineering",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Biomedical Engineering",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Biomedical Sciences",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Biostatistics",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Black Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Business",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Business Administration",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Business Administration (Finance and Banking)",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Business Administration (International Business-Finance)",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Business Administration (International Business-Management)",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Business Administration (International Business-Marketing)",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Business Administration (Management)",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Business Administration (Marketing)",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Business Administration (Real Estate)",
+    "types": [
+      "BSBA"
+    ]
+  },
+  {
+    "name": "Canadian Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Captive Wild Animal Management",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Chemical Engineering",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Chemical Engineering (Biochemical)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Chemical Engineering (Environmental)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Chemical Engineering (Materials)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Chemistry",
+    "types": [
+      "BA",
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Chinese Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Civil Engineering",
+    "types": [
+      "BSCiE"
+    ]
+  },
+  {
+    "name": "Clinical Engineering",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Clinical and Diagnostic Sciences",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Clinical and Diagnostic Sciences (Clinical Laboratory Science)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Clinical and Diagnostic Sciences (Diagnostic Medical Ultrasound)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Clinical and Diagnostic Sciences (Nuclear Medicine)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Clinical and Diagnostic Sciences (Radiography)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Clinical and Diagnostic Sciences (Respiratory Therapy)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Coaching Sports",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Communication",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Computational Neuroscience",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Computational Physics",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Computer Engineering",
+    "types": [
+      "BSCoE"
+    ]
+  },
+  {
+    "name": "Computer Science",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Constitutional Democracy",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Construction Management",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Corporate Finance",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Creative Writing",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Criminology/Criminal and Juvenile Justice",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Cyber Security",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Data Science",
+    "types": [
+      "Arts and Science,\u00a0BS",
+      "Arts and Science,\u00a0Minor",
+      "Engineering,\u00a0BS",
+      "Engineering,\u00a0Minor"
+    ]
+  },
+  {
+    "name": "Defense and Strategic Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Digital Global Studies",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Digital Marketing",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Digital Merchandising",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Digital Storytelling",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Early Childhood Education",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "East Asian Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Economics",
+    "types": [
+      "BA",
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Education",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Educational Studies",
+    "types": [
+      "BES"
+    ]
+  },
+  {
+    "name": "Educational Studies (Educational Games and Simulations Design)",
+    "types": [
+      "BES"
+    ]
+  },
+  {
+    "name": "Educational Studies (Educational Leadership)",
+    "types": [
+      "BES"
+    ]
+  },
+  {
+    "name": "Electrical Engineering",
+    "types": [
+      "BSEE"
+    ]
+  },
+  {
+    "name": "Elementary Education",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Elementary Education (Elementary Education)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Energy Engineering",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Engineering",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Engineering Sustainability",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "English",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Entrepreneurship and Innovation Management",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Environmental Engineering",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Environmental Sciences",
+    "types": [
+      "Minor",
+      "BS"
+    ]
+  },
+  {
+    "name": "Environmental Sciences (Atmosphere)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Environmental Sciences (Land and Soil)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Environmental Sciences (Outreach and Education)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Environmental Sciences (Water)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Equine Science and Management",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Ethical Theory and Practice",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Film Studies",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Film Studies (Film Production)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Fitness Programming and Management",
+    "types": [
+      "Certificate, Stand-Alone Certificate",
+      "BS"
+    ]
+  },
+  {
+    "name": "Fitness Programming and Management (Strength and Conditioning)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Floral Artistry and Management",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Food Science and Nutrition",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "French",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "General Studies",
+    "types": [
+      "BGS"
+    ]
+  },
+  {
+    "name": "Geographical Information Science-Interdisciplinary",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Geography",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Geography (General Geography)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Geography (Geographic Information Sciences)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Geography (Physical / Environmental)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Geography (Regional / Cultural)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Geological Sciences",
+    "types": [
+      "BA",
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "German",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Global Brazil",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Global Business",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Global Supply Chain Management",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Graphic Design",
+    "types": [
+      "BFA"
+    ]
+  },
+  {
+    "name": "Health Humanities",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Health Science",
+    "types": [
+      "BHS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Health Science (Health and Wellness Services)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Health Science (Leadership and Policy)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Health Science (Pre-Professional)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Health Science (Rehabilitation Sciences)",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "History",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "History (Public History)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Hospitality Management",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Human Development and Family Science",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Human Development and Family Science (Child Life Specialist)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Human Development and Family Science (Early Childhood Education in a Mobile Society)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Human Development and Family Science (Family and Lifespan Development)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Human Resource Management",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Industrial Engineering",
+    "types": [
+      "BSIE"
+    ]
+  },
+  {
+    "name": "Industry 4.0",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Information Systems and Technology",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Information Technology",
+    "types": [
+      "BS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Interdisciplinary",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Interdisciplinary (Black Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Interdisciplinary (Environmental Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Interdisciplinary (Peace Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Interdisciplinary (Women's and Gender Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Agriculture Food and Natural Resources",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "International Studies",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Studies (East Asian Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Studies (Environmental Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Studies (European Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Studies (International Business)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Studies (Latin American Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Studies (Peace Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "International Studies (South Asian Studies)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Investments",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Italian Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Japanese Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Jazz Studies",
+    "types": [
+      "Certificate",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Journalism",
+    "types": [
+      "BJ",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Journalism (Strategic Communication)",
+    "types": [
+      "BJ"
+    ]
+  },
+  {
+    "name": "Korean Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Landscape Design",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Latin American Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Latinx Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Law",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Leadership and Public Service",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Linguistics",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Marketing Analytics",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Mathematics",
+    "types": [
+      "Minor",
+      "BA",
+      "BS"
+    ]
+  },
+  {
+    "name": "Mathematics (Actuarial Science and Mathematical Finance)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Mechanical Engineering",
+    "types": [
+      "BSME"
+    ]
+  },
+  {
+    "name": "Media Technology and Design",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Medical/Health Physics",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Medieval and Renaissance Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Microbiology",
+    "types": [
+      "Minor",
+      "BS"
+    ]
+  },
+  {
+    "name": "Middle School Education",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Middle School Education (Language Arts)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Middle School Education (Mathematics)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Middle School Education (Science)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Middle School Education (Social Studies)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Military Science",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Missouri Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Multicultural Studies",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Music",
+    "types": [
+      "Minor",
+      "BA",
+      "BM"
+    ]
+  },
+  {
+    "name": "Music (Composition)",
+    "types": [
+      "BM"
+    ]
+  },
+  {
+    "name": "Music (Music Education)",
+    "types": [
+      "BM"
+    ]
+  },
+  {
+    "name": "Music (Music History)",
+    "types": [
+      "BM"
+    ]
+  },
+  {
+    "name": "Music (Music Theory)",
+    "types": [
+      "BM"
+    ]
+  },
+  {
+    "name": "Music (Performance)",
+    "types": [
+      "BM"
+    ]
+  },
+  {
+    "name": "Musical Theatre",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Native American and Indigenous Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Natural Environment and Human Health",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Natural Resource Science and Management",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Natural Resources Science and Management",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Natural Resources Science and Management (Fisheries and Wildlife Sciences)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Natural Resources Science and Management (Forest Resources)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Natural Resources Science and Management (Human Dimensions)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Natural Resources Science and Management (Terrestrial Ecosystems)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Naval Science",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Neural Engineering-Signals",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Neural Engineering-Systems",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Neuroscience",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Nuclear Engineering",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Nursing",
+    "types": [
+      "BSN"
+    ]
+  },
+  {
+    "name": "Nutrition and Exercise Physiology",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Nutrition and Exercise Physiology (Human Physiology and Translational Sciences)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Nutrition and Exercise Physiology (Nutrition and Foods)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Nutrition and Exercise Physiology (Physical Activity",
+    "types": [
+      "Nutrition and Human Performance),\u00a0BS"
+    ]
+  },
+  {
+    "name": "Nutritional Sciences",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Occupational Therapy Assistant",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Paleobiology",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Parks",
+    "types": [
+      "Recreation, Sport and Tourism,\u00a0BS",
+      "Recreation, Sport and Tourism (Natural Resource Recreation Management),\u00a0BS",
+      "Recreation, Sport and Tourism (Recreation Administration),\u00a0BS",
+      "Recreation, Sport and Tourism (Sport Management),\u00a0BS",
+      "Recreation, Sport and Tourism (Tourism Development),\u00a0BS"
+    ]
+  },
+  {
+    "name": "Peace Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Personal Branding",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Personal Financial Planning",
+    "types": [
+      "Certificate, Stand-Alone Certificate",
+      "BS"
+    ]
+  },
+  {
+    "name": "Philosophy",
+    "types": [
+      "Minor",
+      "BA",
+      "BS"
+    ]
+  },
+  {
+    "name": "Physics",
+    "types": [
+      "Minor",
+      "BA",
+      "BS"
+    ]
+  },
+  {
+    "name": "Physics (Astronomy)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Physics (Biological Physics)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Physics (Materials Science)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Plant Sciences",
+    "types": [
+      "Minor",
+      "BS"
+    ]
+  },
+  {
+    "name": "Plant Sciences (Breeding",
+    "types": [
+      "Biology and Biotechnology),\u00a0BS"
+    ]
+  },
+  {
+    "name": "Plant Sciences (Crop Management)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Plant Sciences (Horticultural Science and Design)",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Political Science",
+    "types": [
+      "Minor",
+      "BA"
+    ]
+  },
+  {
+    "name": "Political Science (Pre-Law)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Pre-Applied Behavior Analysis",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Dental",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Law",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Medicine",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Occupational Therapy",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Optometry",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Pharmacy",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Physician Assistant",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Podiatry",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Pre-Professional Physical Therapy",
+    "types": [
+      "BHS"
+    ]
+  },
+  {
+    "name": "Pre-Veterinary Medicine",
+    "types": [
+      "Pre-Professional"
+    ]
+  },
+  {
+    "name": "Precision Agriculture Technology",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Professional Communication",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Psychological Sciences",
+    "types": [
+      "Minor",
+      "BA",
+      "BS"
+    ]
+  },
+  {
+    "name": "Psychology",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Public Administration and Policy",
+    "types": [
+      "BA",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Public Health",
+    "types": [
+      "BHS",
+      "Minor"
+    ]
+  },
+  {
+    "name": "Public Health and Gender",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Radioenvironmental Sciences",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Religious Studies",
+    "types": [
+      "Minor",
+      "BA"
+    ]
+  },
+  {
+    "name": "Rhetoric and Writing Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Romance Languages",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Romance Languages (French)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Romance Languages (Spanish)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Russian",
+    "types": [
+      "Minor",
+      "BA"
+    ]
+  },
+  {
+    "name": "Sales and Customer Development",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Science and Agricultural Communications",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Secondary Education",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Art Education)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Biology)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Chemistry)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Earth Science)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Language Arts)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Mathematics Education)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Physics)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Secondary Education (Social Studies)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Social Justice",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Social Justice for Educational Leaders",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Social Work",
+    "types": [
+      "BSW"
+    ]
+  },
+  {
+    "name": "Social Work-Gerontology",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Sociology",
+    "types": [
+      "Minor",
+      "BA"
+    ]
+  },
+  {
+    "name": "Spanish",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Special Education",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Special Education (Cross Categorical Special Education)",
+    "types": [
+      "BSEd"
+    ]
+  },
+  {
+    "name": "Speech",
+    "types": [
+      "Language and Hearing Sciences,\u00a0BHS"
+    ]
+  },
+  {
+    "name": "Sports Analytics",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Statistics",
+    "types": [
+      "Minor",
+      "BA",
+      "BS"
+    ]
+  },
+  {
+    "name": "Sustainability",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "Textile and Apparel Management",
+    "types": [
+      "Minor",
+      "BS"
+    ]
+  },
+  {
+    "name": "Theatre",
+    "types": [
+      "Minor",
+      "BA"
+    ]
+  },
+  {
+    "name": "Theatre (Design / Technical)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Theatre (Performance)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Theatre (Writing for Performance)",
+    "types": [
+      "BA"
+    ]
+  },
+  {
+    "name": "Undeclared",
+    "types": [
+      ""
+    ]
+  },
+  {
+    "name": "Undeclared Agriculture",
+    "types": [
+      "Food & Natural Resources"
+    ]
+  },
+  {
+    "name": "Veterinary Science",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Veterinary Technology",
+    "types": [
+      "BS"
+    ]
+  },
+  {
+    "name": "Web and Mobile Applications Development",
+    "types": [
+      "Certificate, Stand-Alone Certificate"
+    ]
+  },
+  {
+    "name": "Wellness",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Women's and Gender Studies",
+    "types": [
+      "Minor"
+    ]
+  },
+  {
+    "name": "Writing Intensive",
+    "types": [
+      "Certificate"
+    ]
+  },
+  {
+    "name": "computerComputing",
+    "types": [
+      "Engineering, Math, and Applied Science"
+    ]
+  },
+  {
+    "name": "micCommunication",
+    "types": [
+      "Journalism, Writing, and Media"
+    ]
+  },
+  {
+    "name": "paletteCreative",
+    "types": [
+      "Design, and Performing Arts"
+    ]
+  }
+]

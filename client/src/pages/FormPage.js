@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
+import majors from "../data/majors.json";
+
 
 function FormPage() {
   const [formData, setFormData] = useState({
@@ -11,6 +13,7 @@ function FormPage() {
   });
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [major, setMajor] = useState("");
 
   const terms = [
     "Fall 2020",
@@ -27,7 +30,7 @@ function FormPage() {
     "Summer 2024",
     "Fall 2024",
     "Spring 2025",
-    "Summer 2025"
+    "Summer 2025",
   ];
   const subjects = [
     "ACCTY",
@@ -252,13 +255,8 @@ function FormPage() {
         "http://localhost:5000/submit-course-history",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId,
-            courses: [course],
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, courses: [course] }),
         }
       );
 
@@ -275,12 +273,10 @@ function FormPage() {
     }
   };
 
-  const handleFileChange = (e) => {
-    setSelectedFile(e.target.files[0]);
-  };
+  const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 
   const handleFileSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
     if (!selectedFile) {
       alert("Please select a file.");
@@ -318,12 +314,57 @@ function FormPage() {
     }));
   };
 
+  const handleSetMajor = async () => {
+    const userId = localStorage.getItem("userId");
+
+    try {
+      const res = await fetch("http://localhost:5000/set-major", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId, major }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Major set successfully!");
+      } else {
+        console.error("Failed to set major:", data);
+        alert("Failed to set major.");
+      }
+    } catch (err) {
+      console.error("Error setting major:", err);
+      alert("An error occurred while setting the major.");
+    }
+  };
+
   return (
     <Container className="mt-5">
       <h1 className="text-center mb-4" style={{ color: "black" }}>
         Submit Your Course History
       </h1>
 
+      {/* Major Selection Section */}
+      <hr className="my-5" />
+      <h2 className="mb-3">Set Your Major</h2>
+      <Form.Group className="mb-3">
+        <Form.Label>Select Major</Form.Label>
+        <Form.Select value={major} onChange={(e) => setMajor(e.target.value)}>
+          <option value="">Select Your Major</option>
+          {majors.map((m) =>
+            m.types.map((type) => (
+              <option key={`${m.name}-${type}`} value={m.name}>
+                {m.name} ({type})
+              </option>
+            ))
+          )}
+        </Form.Select>
+      </Form.Group>
+      <Button variant="success" onClick={handleSetMajor}>
+        Save Major
+      </Button>
+      <hr className="my-5" />
       {/* PDF Upload Section */}
       <div className="mb-5">
         <h2 className="mb-4">Upload Degree Audit</h2>
@@ -335,7 +376,11 @@ function FormPage() {
               onChange={handleFileChange}
             />
           </Form.Group>
-          <Button variant="primary" type="submit" disabled={!selectedFile}>
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={!selectedFile || !major.trim()}
+          >
             Upload PDF
           </Button>
         </Form>
@@ -348,7 +393,6 @@ function FormPage() {
       <Form onSubmit={handleSubmit}>
         <h4 className="mb-3">Select from the Course List</h4>
 
-        {/* Dropdown Selections */}
         <Row>
           <Col md={6}>
             <Form.Group className="mb-3">
@@ -440,9 +484,15 @@ function FormPage() {
 
         <Row className="mt-4">
           <Col className="d-flex justify-content-center gap-3">
-            <Button variant="primary" type="submit" size="lg">
+            <Button
+              variant="primary"
+              type="submit"
+              size="lg"
+              disabled={!major.trim()}
+            >
               Submit
             </Button>
+
             <Button variant="secondary" type="reset" size="lg">
               Reset
             </Button>
