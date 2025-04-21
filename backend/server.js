@@ -289,6 +289,28 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
   }
 });
 
+
+app.post("/set-major", async (req, res) => {
+  const { userId, major } = req.body;
+
+  try {
+    const updated = await CourseHistory.findOneAndUpdate(
+      { userId },
+      { major },
+      { new: true, upsert: false }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ error: "Course history not found" });
+    }
+
+    res.json({ message: "Major updated successfully", updated });
+  } catch (err) {
+    console.error("Error setting major:", err);
+    res.status(500).json({ error: "Failed to update major" });
+  }
+});
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
