@@ -7,6 +7,32 @@ const multer = require("multer");
 const pdfParse = require("pdf-parse");
 const fs = require("fs");
 require("dotenv").config();
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+//Middleware to verify Firebase ID token
+async function verifyFirebaseToken(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const match = authHeader.match(/^Bearer (.+)$/);
+  if (!match) {
+    return res.status(401).json({ error: "Missing or malformed Authorization header" });
+  }
+
+  const idToken = match[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.firebaseUid   = decodedToken.uid;
+    req.firebaseEmail = decodedToken.email;
+    next();
+  } catch (err) {
+    console.error("Firebase token verification failed:", err);
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,12 +63,13 @@ const upload = multer({ dest: "uploads/" });
 
 // Define User Schema
 const UserSchema = new mongoose.Schema({
-  username: { type: String, unique: true }, // <-- Added this
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  firebaseUid:   { type: String, required: true, unique: true },
+  name:          { type: String, required: true },
+  email:         { type: String, required: true, unique: true },
+  // password is managed by Firebase now—no need to store it:
+  // password:    { type: String },
   courseHistory: { type: mongoose.Schema.Types.ObjectId, ref: "CourseHistory" },
-  createdAt: { type: Date, default: Date.now },
+  createdAt:     { type: Date, default: Date.now },
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -66,7 +93,7 @@ const CourseSchema = new mongoose.Schema({
 
 
 const CourseHistorySchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  firebaseUid: { type: String, ref: "User", required: true }, // Reference Firebase UID instead of ObjectId
   courses: { type: [CourseSchema], required: true },
   major: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
@@ -123,75 +150,88 @@ app.get("/course-catalog", async (req, res) => {
 });
 
 
-app.post("/signup", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+// SIGNUP ROUTE
+app.post("/signup", verifyFirebaseToken, async (req, res) => {
+  const { name } = req.body;
+  const { firebaseUid, firebaseEmail } = req;
+  console.log("▶︎ /signup hit, body:", req.body);
+  console.log("   firebaseUid:", req.firebaseUid, "email:", req.firebaseEmail);
 
-    let existingUser = await User.findOne({ email });
-    if (existingUser) {
+  try {
+    // Check if the user already exists
+    let user = await User.findOne({ firebaseUid });
+    if (user) {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
-
-    const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
-    res.status(201).json({
-      message: "User created successfully!",
-      token,
-      userId: newUser._id,
+    // Create new user document
+    user = new User({
+      firebaseUid,
+      name,
+      email: firebaseEmail,
+      // note: no password field needed
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+    await user.save();
 
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
+    // Generate your backend JWT
+    const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: "1h" });
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "User not found" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
-    res.status(200).json({
-      message: "Login successful!",
+    // Return success
+    return res.status(201).json({
+      message: "User created successfully!",
       token,
       userId: user._id,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Signup error:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// LOGIN ROUTE
+app.post("/users/login", verifyFirebaseToken, async (req, res) => {
+  const { firebaseUid, firebaseEmail } = req;
+
+  try {
+    // Try to find existing user
+    let user = await User.findOne({ firebaseUid });
+    if (!user) {
+      // If none, create one
+      user = new User({
+        firebaseUid,
+        email: firebaseEmail,
+        name: "<default or blank>", 
+      });
+      await user.save();
+    }
+
+    // Generate your backend JWT
+    const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: "1h" });
+
+    // Return success
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      userId: user._id,
+    });
+  } catch (err) {
+    console.error("Error logging in user:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
 app.post("/submit-course-history", async (req, res) => {
   try {
-    const { userId, courses } = req.body;
+    const { firebaseUid, courses } = req.body;
 
-    if (!userId || !courses || courses.length === 0) {
-      return res.status(400).json({ error: "Missing userId or courses" });
+    if (!firebaseUid || !courses || courses.length === 0) {
+      return res.status(400).json({ error: "Missing firebaseUid or courses" });
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findOne({ firebaseUid });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    let courseHistory = await CourseHistory.findOne({ userId });
+    let courseHistory = await CourseHistory.findOne({ userId: user._id });
 
     if (courseHistory) {
       courseHistory.courses = courses;
@@ -201,7 +241,7 @@ app.post("/submit-course-history", async (req, res) => {
         courseHistory,
       });
     } else {
-      courseHistory = new CourseHistory({ userId, courses });
+      courseHistory = new CourseHistory({ userId: user._id, courses });
       await courseHistory.save();
       user.courseHistory = courseHistory._id;
       await user.save();
@@ -217,15 +257,17 @@ app.post("/submit-course-history", async (req, res) => {
 });
 
 
-// PDF Upload Route
 app.post("/upload", upload.single("pdf"), async (req, res) => {
   try {
-    const userId = req.body.userId;
+    const firebaseUid = req.body.firebaseUid;
     const file = req.file;
 
-    if (!userId || !file) {
-      return res.status(400).json({ error: "Missing userId or file" });
+    if (!firebaseUid || !file) {
+      return res.status(400).json({ error: "Missing firebaseUid or file" });
     }
+
+    const user = await User.findOne({ firebaseUid });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
     const dataBuffer = fs.readFileSync(file.path);
     const pdfData = await pdfParse(dataBuffer);
@@ -262,19 +304,16 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       return res.status(400).json({ error: "No valid courses found in PDF" });
     }
 
-    let courseHistory = await CourseHistory.findOne({ userId });
+    let courseHistory = await CourseHistory.findOne({ userId: user._id });
     if (courseHistory) {
       courseHistory.courses = courses;
       await courseHistory.save();
     } else {
-      courseHistory = new CourseHistory({ userId, courses });
+      courseHistory = new CourseHistory({ userId: user._id, courses });
       await courseHistory.save();
 
-      const user = await User.findById(userId);
-      if (user) {
-        user.courseHistory = courseHistory._id;
-        await user.save();
-      }
+      user.courseHistory = courseHistory._id;
+      await user.save();
     }
 
     fs.unlinkSync(file.path);

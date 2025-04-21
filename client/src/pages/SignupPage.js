@@ -1,114 +1,110 @@
+// client/src/pages/SignupPage.js
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../firebase";               // your firebase.js
+import { createUserWithEmailAndPassword } from "firebase/auth";
 
-
-const API_URL =
-  process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
 
 function SignupPage() {
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-  const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // Used for navigation after successful signup
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[a-zA-Z0-9]+@umsystem\.edu$/;
-    return emailRegex.test(email);
-  };
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-
-    // Clear email error when user types
-    if (name === "email") {
-      setEmailError("");
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    // Validate email format
-    if (!validateEmail(formData.email)) {
-      setEmailError("Please enter a valid @umsystem.edu email address");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match!");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match!");
+      setLoading(false);
+      return;
+    }
+
     try {
+      // 1) Create user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const firebaseUser = userCredential.user;
+
+      // 2) Grab the Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
+
+      // 3) Send name + token to your backend
       const response = await fetch(`${API_URL}/signup`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.email.split("@")[0], // Extract 'pawprint' from email as name
-          email: formData.email,
-          password: formData.password,
-        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ name: formData.name }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Save token and userId in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.userId);
-
-        console.log("Stored userId:", localStorage.getItem("userId")); // Debugging
-
-        alert("Signup successful!");
-        navigate("/visualizer"); // Redirect to visualization page
-      } else {
-        setError(data.error || "Signup failed. Please try again.");
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to sign up.");
       }
-    } catch (error) {
-      console.error("Signup error:", error);
-      setError("Something went wrong. Please try again.");
+
+      const data = await response.json();
+      console.log("Backend signup response:", data);
+
+      alert("Signup successful!");
+      navigate("/login");
+    } catch (err) {
+      console.error("Signup error:", err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
+    <div className="signup-page">
       <h2 className="mb-4">Create Account</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email:
-          </label>
+          <label htmlFor="name" className="form-label">Name:</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            className="form-control"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="email" className="form-label">Email:</label>
           <input
             type="email"
             id="email"
             name="email"
-            className={`form-control ${emailError ? "is-invalid" : ""}`}
+            className="form-control"
             value={formData.email}
             onChange={handleChange}
-            placeholder="pawprint@umsystem.edu"
             required
           />
-          {emailError && <div className="invalid-feedback">{emailError}</div>}
         </div>
         <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password:
-          </label>
+          <label htmlFor="password" className="form-label">Password:</label>
           <input
             type="password"
             id="password"
@@ -120,9 +116,7 @@ function SignupPage() {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="confirmPassword" className="form-label">
-            Confirm Password:
-          </label>
+          <label htmlFor="confirmPassword" className="form-label">Confirm Password:</label>
           <input
             type="password"
             id="confirmPassword"
@@ -133,11 +127,7 @@ function SignupPage() {
             required
           />
         </div>
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
+        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
           {loading ? "Signing up..." : "Sign Up"}
         </button>
       </form>

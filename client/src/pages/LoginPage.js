@@ -1,9 +1,11 @@
+// client/src/pages/LoginPage.js
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../firebase";               // your firebase.js
+import { signInWithEmailAndPassword } from "firebase/auth";
 
-// Use the correct backend API URL
-const API_URL =
-  process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -18,26 +20,39 @@ function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/login`, {
+      // 1) Authenticate user with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser = userCredential.user;
+
+      // 2) Grab the Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
+
+      // 3) Send token to your backend
+      const response = await fetch(`${API_URL}/users/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${idToken}`,
+        },
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Invalid email or password.");
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to log in.");
       }
 
       const data = await response.json();
+      console.log("Backend login response:", data);
+
+      // 4) Store your backend JWT
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
 
       alert("Login successful!");
       navigate("/visualizer");
-    } catch (error) {
-      console.error("Login error:", error.message);
-      setError(error.message);
+    } catch (err) {
+      console.error("Login error:", err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -49,9 +64,7 @@ function LoginPage() {
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email:
-          </label>
+          <label htmlFor="email" className="form-label">Email:</label>
           <input
             type="email"
             id="email"
@@ -59,13 +72,11 @@ function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="pawprint@umsystem.edu"
+            placeholder="you@domain.com"
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password:
-          </label>
+          <label htmlFor="password" className="form-label">Password:</label>
           <input
             type="password"
             id="password"
@@ -75,11 +86,7 @@ function LoginPage() {
             required
           />
         </div>
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
+        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
