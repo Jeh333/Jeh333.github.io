@@ -1,18 +1,16 @@
-// client/src/pages/LoginPage.js
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase";               // your firebase.js
+import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL;
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState("");
+  const navigate                = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -22,16 +20,22 @@ function LoginPage() {
     try {
       // 1) Authenticate user with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const firebaseUser = userCredential.user;
+      const firebaseUser   = userCredential.user;
 
-      // 2) Grab the Firebase ID token
+      // 2) Block unverified users
+      if (!firebaseUser.emailVerified) {
+        await auth.signOut();
+        throw new Error("Please verify your email before logging in.");
+      }
+
+      // 3) Grab the Firebase ID token
       const idToken = await firebaseUser.getIdToken();
 
-      // 3) Send token to your backend
+      // 4) Send token to your backend
       const response = await fetch(`${API_URL}/users/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type":  "application/json",
           "Authorization": `Bearer ${idToken}`,
         },
       });
@@ -41,10 +45,8 @@ function LoginPage() {
         throw new Error(errData.error || "Failed to log in.");
       }
 
+      // 5) Parse and store backend JWT
       const data = await response.json();
-      console.log("Backend login response:", data);
-
-      // 4) Store your backend JWT
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
 

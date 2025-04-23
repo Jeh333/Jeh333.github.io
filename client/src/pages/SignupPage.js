@@ -1,11 +1,9 @@
-// client/src/pages/SignupPage.js
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../firebase";               // your firebase.js
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+import {createUserWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
 
-const API_URL = process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL;
 
 function SignupPage() {
   const [formData, setFormData] = useState({
@@ -15,8 +13,8 @@ function SignupPage() {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [error, setError]     = useState("");
+  const navigate               = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,33 +41,22 @@ function SignupPage() {
       );
       const firebaseUser = userCredential.user;
 
-      // 2) Grab the Firebase ID token
-      const idToken = await firebaseUser.getIdToken();
+      // 2) Send verification email
+      await sendEmailVerification(firebaseUser);
+      alert(
+        "A verification email has been sent. " +
+        "Please check your inbox and verify before logging in."
+      );
+      setLoading(false);
+      navigate("/login"); // send them to login so they can verify and then log in
+      return;
 
-      // 3) Send name + token to your backend
-      const response = await fetch(`${API_URL}/signup`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ name: formData.name }),
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || "Failed to sign up.");
-      }
-
-      const data = await response.json();
-      console.log("Backend signup response:", data);
-
-      alert("Signup successful!");
-      navigate("/login");
+      // (Optional) backend sync could go here after verification
+      // const idToken = await firebaseUser.getIdToken();
+      // await fetch(`${API_URL}/signup`, { … });
     } catch (err) {
-      console.error("Signup error:", err.message);
-      setError(err.message);
-    } finally {
+      console.error("Signup error:", err);
+      setError(err.message || "Failed to sign up.");
       setLoading(false);
     }
   };
@@ -116,7 +103,9 @@ function SignupPage() {
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="confirmPassword" className="form-label">Confirm Password:</label>
+          <label htmlFor="confirmPassword" className="form-label">
+            Confirm Password:
+          </label>
           <input
             type="password"
             id="confirmPassword"
@@ -127,7 +116,11 @@ function SignupPage() {
             required
           />
         </div>
-        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+        <button
+          type="submit"
+          className="btn btn-primary w-100"
+          disabled={loading}
+        >
           {loading ? "Signing up..." : "Sign Up"}
         </button>
       </form>
