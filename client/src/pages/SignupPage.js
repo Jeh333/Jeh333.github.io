@@ -1,114 +1,97 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import {createUserWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
 
-
-const API_URL =
-  process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL;
 
 function SignupPage() {
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-  const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate(); // Used for navigation after successful signup
-
-  const validateEmail = (email) => {
-    const emailRegex = /^[a-zA-Z0-9]+@umsystem\.edu$/;
-    return emailRegex.test(email);
-  };
+  const [error, setError]     = useState("");
+  const navigate               = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-
-    // Clear email error when user types
-    if (name === "email") {
-      setEmailError("");
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    // Validate email format
-    if (!validateEmail(formData.email)) {
-      setEmailError("Please enter a valid @umsystem.edu email address");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match!");
-      return;
-    }
-
     setLoading(true);
     setError("");
 
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match!");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${API_URL}/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.email.split("@")[0], // Extract 'pawprint' from email as name
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
+      // 1) Create user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const firebaseUser = userCredential.user;
 
-      const data = await response.json();
+      // 2) Send verification email
+      await sendEmailVerification(firebaseUser);
+      alert(
+        "A verification email has been sent. " +
+        "Please check your inbox and verify before logging in."
+      );
+      setLoading(false);
+      navigate("/login"); // send them to login so they can verify and then log in
+      return;
 
-      if (response.ok) {
-        // Save token and userId in localStorage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userId", data.userId);
-
-        console.log("Stored userId:", localStorage.getItem("userId")); // Debugging
-
-        alert("Signup successful!");
-        navigate("/visualizer"); // Redirect to visualization page
-      } else {
-        setError(data.error || "Signup failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Signup error:", error);
-      setError("Something went wrong. Please try again.");
-    } finally {
+      // (Optional) backend sync could go here after verification
+      // const idToken = await firebaseUser.getIdToken();
+      // await fetch(`${API_URL}/signup`, { … });
+    } catch (err) {
+      console.error("Signup error:", err);
+      setError(err.message || "Failed to sign up.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
+    <div className="signup-page">
       <h2 className="mb-4">Create Account</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email:
-          </label>
+          <label htmlFor="name" className="form-label">Name:</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            className="form-control"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="email" className="form-label">Email:</label>
           <input
             type="email"
             id="email"
             name="email"
-            className={`form-control ${emailError ? "is-invalid" : ""}`}
+            className="form-control"
             value={formData.email}
             onChange={handleChange}
-            placeholder="pawprint@umsystem.edu"
             required
           />
-          {emailError && <div className="invalid-feedback">{emailError}</div>}
         </div>
         <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password:
-          </label>
+          <label htmlFor="password" className="form-label">Password:</label>
           <input
             type="password"
             id="password"

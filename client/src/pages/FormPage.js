@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import majors from "../data/majors.json";
 
+import { auth } from "../firebase";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function FormPage() {
   const [formData, setFormData] = useState({
@@ -241,31 +244,38 @@ function FormPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    // 1) Define the course object
     const course = {
       programId: `${formData.subject} ${formData.courseNumber}`,
-      semester: formData.term,
-      grade: formData.grade,
+      semester:  formData.term,
+      grade:     formData.grade,
     };
-
-    const userId = localStorage.getItem("userId");
-
+  
     try {
+      // 2) Grab Firebase ID token
+      const idToken = await auth.currentUser.getIdToken();
+  
+      // 3) POST to your backend
       const response = await fetch(
-        "http://localhost:5000/submit-course-history",
+        `${API_URL}/submit-course-history`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, courses: [course] }),
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({ courses: [course] }),
         }
       );
-
+  
+      // 4) Handle the JSON response
+      const data = await response.json();
       if (response.ok) {
         alert("Course successfully submitted!");
       } else {
-        const err = await response.json();
-        console.error("Failed response:", err);
-        alert("Failed to submit course.");
+        console.error("Failed response:", data);
+        alert("Failed to submit course: " + (data.error || "Unknown error"));
       }
     } catch (error) {
       console.error("Submit error:", error);
@@ -277,34 +287,45 @@ function FormPage() {
 
   const handleFileSubmit = async (e) => {
     e.preventDefault();
-
     if (!selectedFile) {
       alert("Please select a file.");
       return;
     }
-
-    const formData = new FormData();
-    formData.append("pdf", selectedFile);
-    formData.append("userId", localStorage.getItem("userId"));
-
+  
     try {
-      const response = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
-
+      // 1) Firebase ID token
+      const idToken = await auth.currentUser.getIdToken();
+  
+      // 2) Build FormData
+      const fd = new FormData();
+      fd.append("pdf", selectedFile);
+  
+      // 3) POST to your backend
+      const response = await fetch(
+        `${API_URL}/upload`,
+        {
+          method: "POST",
+          headers: {
+            // Content-Type is auto-set for multipart
+            "Authorization": `Bearer ${idToken}`,
+          },
+          body: fd,
+        }
+      );
+  
       const data = await response.json();
       if (response.ok) {
-        alert("Upload successful!");
-        console.log(data);
+        alert("Upload successful! Parsed courses: " + data.courseCount);
       } else {
-        alert("Upload failed: " + data.error);
+        console.error("Upload failed:", data);
+        alert("Upload failed: " + (data.error || "Unknown error"));
       }
-    } catch (err) {
-      console.error("Network error:", err);
+    } catch (error) {
+      console.error("Network error:", error);
       alert("Could not connect to server.");
     }
   };
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;

@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
-// Use the correct backend API URL
-const API_URL =
-  process.env.REACT_APP_API_URL || "https://jeh333-github-io.onrender.com";
+const API_URL = process.env.REACT_APP_API_URL;
 
 function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState("");
+  const navigate                = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -18,26 +18,43 @@ function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}/login`, {
+      // 1) Authenticate user with Firebase
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const firebaseUser   = userCredential.user;
+
+      // 2) Block unverified users
+      if (!firebaseUser.emailVerified) {
+        await auth.signOut();
+        throw new Error("Please verify your email before logging in.");
+      }
+
+      // 3) Grab the Firebase ID token
+      const idToken = await firebaseUser.getIdToken();
+
+      // 4) Send token to your backend
+      const response = await fetch(`${API_URL}/users/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${idToken}`,
+        },
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Invalid email or password.");
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to log in.");
       }
 
+      // 5) Parse and store backend JWT
       const data = await response.json();
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
 
       alert("Login successful!");
       navigate("/visualizer");
-    } catch (error) {
-      console.error("Login error:", error.message);
-      setError(error.message);
+    } catch (err) {
+      console.error("Login error:", err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -49,9 +66,7 @@ function LoginPage() {
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email:
-          </label>
+          <label htmlFor="email" className="form-label">Email:</label>
           <input
             type="email"
             id="email"
@@ -59,13 +74,11 @@ function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="pawprint@umsystem.edu"
+            placeholder="you@domain.com"
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password:
-          </label>
+          <label htmlFor="password" className="form-label">Password:</label>
           <input
             type="password"
             id="password"
@@ -75,11 +88,7 @@ function LoginPage() {
             required
           />
         </div>
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
+        <button type="submit" className="btn btn-primary w-100" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>

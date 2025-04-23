@@ -7,6 +7,32 @@ const multer = require("multer");
 const pdfParse = require("pdf-parse");
 const fs = require("fs");
 require("dotenv").config();
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceAccountKey.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+//Middleware to verify Firebase ID token
+async function verifyFirebaseToken(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+  const match = authHeader.match(/^Bearer (.+)$/);
+  if (!match) {
+    return res.status(401).json({ error: "Missing or malformed Authorization header" });
+  }
+
+  const idToken = match[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    req.firebaseUid   = decodedToken.uid;
+    req.firebaseEmail = decodedToken.email;
+    next();
+  } catch (err) {
+    console.error("Firebase token verification failed:", err);
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -37,12 +63,13 @@ const upload = multer({ dest: "uploads/" });
 
 // Define User Schema
 const UserSchema = new mongoose.Schema({
-  username: { type: String }, // <-- Added this
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  firebaseUid:   { type: String, required: true, unique: true },
+  name:          { type: String, required: true },
+  email:         { type: String, required: true, unique: true },
+  // password is managed by Firebase now—no need to store it:
+  // password:    { type: String },
   courseHistory: { type: mongoose.Schema.Types.ObjectId, ref: "CourseHistory" },
-  createdAt: { type: Date, default: Date.now },
+  createdAt:     { type: Date, default: Date.now },
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -54,7 +81,7 @@ const CourseSchema = new mongoose.Schema({
   grade: {
     type: String,
     required: true,
-    match: /^(A|A-|A\+|B|B-|B\+|C|C-|C\+|D|D-|D\+|F|W|IP)$/,
+    match: /^(A|A-|A\+|B|B-|B\+|C|C-|C\+|D|D-|D\+|F|W|IP|S)$/,
   },
   description: { type: String }, 
   credits: { type: Number, min: 0 }, 
@@ -65,11 +92,11 @@ const CourseSchema = new mongoose.Schema({
 });
 
 
+// Store course histories by Firebase UID instead of ObjectId
 const CourseHistorySchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  courses: { type: [CourseSchema], required: true },
-  major: { type: String},
-  createdAt: { type: Date, default: Date.now },
+  firebaseUid: { type: String, required: true, index: true },
+  courses:     { type: [CourseSchema], required: true },
+  createdAt:   { type: Date, default: Date.now },
 });
 
 const CourseHistory = mongoose.model("CourseHistory", CourseHistorySchema);
@@ -100,14 +127,15 @@ app.get("/courses/:programId", async (req, res) => {
 
 app.get("/course-histories", async (req, res) => {
   try {
-    const courseHistories = await CourseHistory.find().populate("userId");
-    if (!courseHistories || courseHistories.length === 0) {
+    // No populate needed when keying by firebaseUid
+    const courseHistories = await CourseHistory.find();
+    if (!courseHistories.length) {
       return res.status(404).json({ error: "No course history records found" });
     }
-    res.status(200).json(courseHistories);
+    return res.status(200).json(courseHistories);
   } catch (err) {
     console.error("Error fetching course histories:", err);
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -123,92 +151,101 @@ app.get("/course-catalog", async (req, res) => {
 });
 
 
-app.post("/signup", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+// SIGNUP ROUTE
+app.post("/signup", verifyFirebaseToken, async (req, res) => {
+  const { name } = req.body;
+  const { firebaseUid, firebaseEmail } = req;
+  console.log("▶︎ /signup hit, body:", req.body);
+  console.log("   firebaseUid:", req.firebaseUid, "email:", req.firebaseEmail);
 
-    let existingUser = await User.findOne({ email });
-    if (existingUser) {
+  try {
+    // Check if the user already exists
+    let user = await User.findOne({ firebaseUid });
+    if (user) {
       return res.status(400).json({ error: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
-
-    const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
-    res.status(201).json({
-      message: "User created successfully!",
-      token,
-      userId: newUser._id,
+    // Create new user document
+    user = new User({
+      firebaseUid,
+      name,
+      email: firebaseEmail,
+      // note: no password field needed
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+    await user.save();
 
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
+    // Generate your backend JWT
+    const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: "1h" });
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "User not found" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      SECRET_KEY,
-      { expiresIn: "1h" }
-    );
-
-    res.status(200).json({
-      message: "Login successful!",
+    // Return success
+    return res.status(201).json({
+      message: "User created successfully!",
       token,
       userId: user._id,
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Signup error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
-app.post("/submit-course-history", async (req, res) => {
-  try {
-    const { userId, courses } = req.body;
+// LOGIN ROUTE
+app.post("/users/login", verifyFirebaseToken, async (req, res) => {
+  const { firebaseUid, firebaseEmail } = req;
 
-    if (!userId || !courses || courses.length === 0) {
-      return res.status(400).json({ error: "Missing userId or courses" });
+  try {
+    // Try to find existing user
+    let user = await User.findOne({ firebaseUid });
+    if (!user) {
+      // If none, create one
+      user = new User({
+        firebaseUid,
+        email: firebaseEmail,
+        name: "<default or blank>", 
+      });
+      await user.save();
     }
 
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    // Generate your backend JWT
+    const token = jwt.sign({ userId: user._id }, SECRET_KEY, { expiresIn: "1h" });
 
-    let courseHistory = await CourseHistory.findOne({ userId });
+    // Return success
+    return res.status(200).json({
+      message: "Login successful",
+      token,
+      userId: user._id,
+    });
+  } catch (err) {
+    console.error("Error logging in user:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 
-    if (courseHistory) {
-      courseHistory.courses = courses;
-      await courseHistory.save();
-      return res.status(200).json({
-        message: "Course history updated successfully!",
-        courseHistory,
-      });
+// SUBMIT COURSE HISTORY by Firebase UID
+app.post("/submit-course-history", verifyFirebaseToken, async (req, res) => {
+  console.log("▶︎ /submit-course-history hit");
+  console.log("   uid:", req.firebaseUid, " body:", req.body);
+  const { courses }    = req.body;
+  const firebaseUid     = req.firebaseUid;
+
+  if (!Array.isArray(courses) || !courses.length) {
+    return res.status(400).json({ error: "Missing courses" });
+  }
+
+  try {
+    // Upsert course history document keyed by firebaseUid
+    let hist = await CourseHistory.findOne({ firebaseUid });
+    if (hist) {
+      hist.courses = courses;
+      await hist.save();
+      return res
+        .status(200)
+        .json({ message: "Course history updated", courseHistory: hist });
     } else {
-      courseHistory = new CourseHistory({ userId, courses });
-      await courseHistory.save();
-      user.courseHistory = courseHistory._id;
-      await user.save();
-      return res.status(201).json({
-        message: "Course history saved successfully!",
-        courseHistory,
-      });
+      hist = await CourseHistory.create({ firebaseUid, courses });
+      return res
+        .status(201)
+        .json({ message: "Course history created", courseHistory: hist });
     }
   } catch (err) {
     console.error("Error saving course history:", err);
@@ -217,77 +254,78 @@ app.post("/submit-course-history", async (req, res) => {
 });
 
 
-// PDF Upload Route
-app.post("/upload", upload.single("pdf"), async (req, res) => {
-  try {
-    const userId = req.body.userId;
-    const file = req.file;
 
-    if (!userId || !file) {
-      return res.status(400).json({ error: "Missing userId or file" });
-    }
+app.post("/upload", verifyFirebaseToken, upload.single("pdf"), async (req, res) => {
+    try {
+      // Pull UID from the verified Firebase token
+      const firebaseUid = req.firebaseUid;
+      const file        = req.file;
 
-    const dataBuffer = fs.readFileSync(file.path);
-    const pdfData = await pdfParse(dataBuffer);
-    const extractedText = pdfData.text;
+      // If no token or no file, fail early
+      if (!firebaseUid) {
+        return res.status(401).json({ error: "Invalid or missing token" });
+      }
+      if (!file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
 
-    console.log("Extracted PDF text:\n", extractedText);
+      // (Optional) Verify user exists
+      const user = await User.findOne({ firebaseUid });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
 
-    const lines = extractedText
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean);
+      // Read & parse the PDF
+      const dataBuffer   = fs.readFileSync(file.path);
+      const pdfData      = await pdfParse(dataBuffer);
+      const lines        = pdfData.text.split("\n").map(l => l.trim()).filter(Boolean);
 
-    const courseRegex =
-      /^([A-Z]{2}\d{2})\s+([A-Z_]+)\s+([\dA-Z]+)\s+([\d.]+)\s+([A-Z][+-]?|IP)\s+[A-Z]+\s+(.*)$/;
+      // Your existing regex for extracting courses
+      const courseRegex = /^([A-Z]{2}\d{2})\s+([A-Z_]+)\s+([\dA-Z]+)\s+([\d.]+)\s+([A-Z][+-]?|IP|S)\s+[A-Z]+\s+(.*)$/;
 
-    const courses = [];
+      const courses = [];
+      for (const line of lines) {
+        const match = line.match(courseRegex);
+        if (match) {
+          const [, semester, subject, number, credits, grade] = match;
+          // Skip withdrawals and zero‑credit courses
+          if (grade === "W" || parseFloat(credits) === 0) continue;
+          courses.push({ programId: `${subject} ${number}`, semester, grade });
+        }
+      }
 
-    for (const line of lines) {
-      const match = line.match(courseRegex);
-      if (match) {
-        const [_, semester, subject, number, credits, grade, description] = match;
+      if (courses.length === 0) {
+        return res.status(400).json({ error: "No valid courses found in PDF" });
+      }
 
-        if (grade === "W" || parseFloat(credits) === 0) continue;
-
-        courses.push({
-          programId: `${subject} ${number}`,
-          semester,
-          grade,
+      // ─── Upsert CourseHistory by firebaseUid ───
+      let courseHistory = await CourseHistory.findOne({ firebaseUid });
+      if (courseHistory) {
+        // Update existing
+        courseHistory.courses = courses;
+        await courseHistory.save();
+      } else {
+        // Create new, always include firebaseUid
+        courseHistory = await CourseHistory.create({
+          firebaseUid,
+          courses,
         });
       }
+      // ────────────────────────────────────────────
+
+      // Clean up and respond
+      fs.unlinkSync(file.path);
+      return res.status(200).json({
+        message: "PDF parsed and course history saved",
+        courseCount: courses.length,
+      });
+    } catch (err) {
+      console.error("Upload error:", err);
+      return res.status(500).json({ error: "Error processing PDF upload" });
     }
-
-    if (courses.length === 0) {
-      return res.status(400).json({ error: "No valid courses found in PDF" });
-    }
-
-    let courseHistory = await CourseHistory.findOne({ userId });
-    if (courseHistory) {
-      courseHistory.courses = courses;
-      await courseHistory.save();
-    } else {
-      courseHistory = new CourseHistory({ userId, courses });
-      await courseHistory.save();
-
-      const user = await User.findById(userId);
-      if (user) {
-        user.courseHistory = courseHistory._id;
-        await user.save();
-      }
-    }
-
-    fs.unlinkSync(file.path);
-
-    return res.status(200).json({
-      message: "PDF parsed and course history saved",
-      courseCount: courses.length,
-    });
-  } catch (err) {
-    console.error("Upload error:", err);
-    return res.status(500).json({ error: "Error processing PDF upload" });
   }
-});
+);
+
 
 
 app.post("/set-major", async (req, res) => {
