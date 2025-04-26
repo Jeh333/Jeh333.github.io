@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const admin = require("firebase-admin");
-const serviceAccount = require("./serviceAccountKey.json");
 require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
@@ -12,6 +11,16 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Firebase Admin Initialization
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_KEY) {
+  // Running on Render / production
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_KEY);
+} else {
+  // Running locally
+  serviceAccount = require("./serviceAccountKey.json");
+}
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -19,7 +28,7 @@ admin.initializeApp({
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://yourdomain.com"],
+    origin: ["http://localhost:3000", "https://jeh333-github-io.onrender.com"],
     credentials: true,
   })
 );
