@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import majors from "../data/majors.json";
 
 import { auth } from "../firebase";
 
-const API_URL = process.env.REACT_APP_API_URL;
+const API_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.REACT_APP_API_URL
+    : process.env.REACT_APP_BACKEND_URL;
 
 function FormPage() {
   const [formData, setFormData] = useState({
@@ -17,6 +20,12 @@ function FormPage() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [major, setMajor] = useState("");
+  useEffect(() => {
+    const savedMajor = localStorage.getItem("selectedMajor");
+    if (savedMajor) {
+      setMajor(savedMajor);
+    }
+  }, []);
 
   const terms = [
     "Fall 2020",
@@ -335,30 +344,32 @@ function FormPage() {
     }));
   };
 
-  const handleSetMajor = async () => {
-    const userId = localStorage.getItem("userId");
+const handleSetMajor = async () => {
+  try {
+    const idToken = await auth.currentUser.getIdToken(); 
+    const res = await fetch(`${API_URL}/set-major`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ major }), 
+    });
 
-    try {
-      const res = await fetch("http://localhost:5000/set-major", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ userId, major }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        alert("Major set successfully!");
-      } else {
-        console.error("Failed to set major:", data);
-        alert("Failed to set major.");
-      }
-    } catch (err) {
-      console.error("Error setting major:", err);
-      alert("An error occurred while setting the major.");
+    const data = await res.json();
+    if (res.ok) {
+      alert("Major set successfully!");
+    } else {
+      console.error("Failed to set major:", data);
+      alert("Failed to set major: " + (data.error || "Unknown error"));
     }
-  };
+  } catch (err) {
+    console.error("Error setting major:", err);
+    alert("An error occurred while setting the major.");
+  }
+};
+
+
 
   return (
     <Container className="mt-5">
@@ -371,7 +382,13 @@ function FormPage() {
       <h2 className="mb-3">Set Your Major</h2>
       <Form.Group className="mb-3">
         <Form.Label>Select Major</Form.Label>
-        <Form.Select value={major} onChange={(e) => setMajor(e.target.value)}>
+        <Form.Select
+          value={major}
+          onChange={(e) => {
+            setMajor(e.target.value);
+            localStorage.setItem("selectedMajor", e.target.value);
+          }}
+        >
           <option value="">Select Your Major</option>
           {majors.map((m) =>
             m.types.map((type) => (

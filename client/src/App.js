@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import VisualizationPage from "./pages/VisualizationPage";
 import PrivateRoute from "./components/PrivateRoute";
+import AccountPage from "./pages/AccountPage";
 
 function App() {
   return (
@@ -17,7 +18,9 @@ function App() {
         <Route path="/form" element={<FormPage />} />
         <Route path="/form-demo" element={<FormPage_demo />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/account" element={<AccountPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
         <Route
           path="/visualizer"
           element={<PrivateRoute element={<VisualizationPage />} />}
