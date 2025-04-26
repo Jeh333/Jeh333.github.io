@@ -28,7 +28,11 @@ admin.initializeApp({
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://jeh333-github-io.onrender.com"],
+    origin: [
+      "http://localhost:3000",
+      "https://jeh333.github.io", 
+      "https://jeh333-github-io.onrender.com",
+    ],
     credentials: true,
   })
 );
