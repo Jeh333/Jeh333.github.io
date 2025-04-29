@@ -8,6 +8,7 @@ import SignupPage from "./pages/SignupPage";
 import VisualizationPage from "./pages/VisualizationPage";
 import PrivateRoute from "./components/PrivateRoute";
 import AccountPage from "./pages/AccountPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   return (
@@ -20,11 +21,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/signup" element={<SignupPage />} />
-
-        <Route
-          path="/visualizer"
-          element={<PrivateRoute element={<VisualizationPage />} />}
-        />
+        <Route path="/visualizer" element={<PrivateRoute element= {<VisualizationPage />} />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     </Router>
   );

@@ -51,7 +51,6 @@ function SignupPage() {
       navigate("/login"); // send them to login so they can verify and then log in
       return;
 
-      // (Optional) backend sync could go here after verification
       // const idToken = await firebaseUser.getIdToken();
       // await fetch(`${API_URL}/signup`, { … });
     } catch (err) {
