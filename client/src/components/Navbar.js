@@ -4,20 +4,20 @@ import { Link, useNavigate } from "react-router-dom";
 
 function AppNavbar() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token"); // Check if user is logged in
+  const token = localStorage.getItem("token");
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove token from storage
+    localStorage.removeItem("token");
     localStorage.removeItem("userId");
-    navigate("/login"); // Redirect to login page
+    navigate("/login");
   };
 
   return (
     <Navbar
       style={{
-        backgroundColor: "#FDB719", // Mizzou Gold
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)", // Adds depth
-        padding: "8px 20px", // Increases navbar height
+        backgroundColor: "#FDB719",
+        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)",
+        padding: "8px 20px",
       }}
       variant="light"
       expand="lg"
@@ -43,26 +43,24 @@ function AppNavbar() {
             <Nav.Link as={Link} to="/form" style={{ color: "black" }}>
               Form
             </Nav.Link>
+            <Nav.Link as={Link} to="/visualizer" style={{ color: "black" }}>
+              Visualizer
+            </Nav.Link>
+            <Nav.Link as={Link} to="/statistics" style={{ color: "black" }}>
+              Statistics
+            </Nav.Link>
+            <Nav.Link as={Link} to="/edit" style={{ color: "black" }}>
+              Edit
+            </Nav.Link>
 
-            {/* Show these links only when user is logged in */}
             {token ? (
               <>
-                <Nav.Link as={Link} to="/visualizer" style={{ color: "black" }}>
-                  Visualizer
-                </Nav.Link>
-                {/* NEW Account link */}
                 <Nav.Link as={Link} to="/account" style={{ color: "black" }}>
                   Account
                 </Nav.Link>
                 <Button variant="dark" onClick={handleLogout} size="sm">
                   Logout
                 </Button>
-                <Nav.Link as={Link} to="/statistics" style={{ color: "black" }}>
-                  Statistics
-                </Nav.Link>
-                <Nav.Link as={Link} to="/edit" style={{ color: "black" }}>
-                  Edit
-                </Nav.Link>
               </>
             ) : (
               <>

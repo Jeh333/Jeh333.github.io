@@ -402,7 +402,7 @@ function VisualizationPage() {
           onClick={handleSingleUser}
           style={{
             margin: "0 5px",
-            backgroundColor: viewMode === "single" ? "#FD8719" : "#6c757d",
+            backgroundColor: viewMode === "single" ? "#F1B82D" : "#6c757d",
             color: viewMode === "single" ? "black" : "white",
             fontWeight: viewMode === "single" ? "bold" : "",
             border: "2px solid black",

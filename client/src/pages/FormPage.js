@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import majors from "../data/majors.json";
-
+import coursePrefixes from "../data/coursePrefixes.json";
 import { auth } from "../firebase";
+import termsList from "../data/termsList";
+
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -18,6 +20,16 @@ function FormPage() {
     status: "",
   });
 
+  const convertToCode = (fullTerm) => {
+    const [season, year] = fullTerm.split(" ");
+    const seasonMap = {
+      Spring: "SP",
+      Summer: "SS",
+      Fall: "FS",
+    };
+    return `${seasonMap[season] || season}${year.slice(-2)}`;
+  };
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [major, setMajor] = useState("");
   useEffect(() => {
@@ -27,211 +39,9 @@ function FormPage() {
     }
   }, []);
 
-  const terms = [
-    "Fall 2020",
-    "Spring 2021",
-    "Summer 2021",
-    "Fall 2021",
-    "Spring 2022",
-    "Summer 2022",
-    "Fall 2022",
-    "Spring 2023",
-    "Summer 2023",
-    "Fall 2023",
-    "Spring 2024",
-    "Summer 2024",
-    "Fall 2024",
-    "Spring 2025",
-    "Summer 2025",
-  ];
-  const subjects = [
-    "ACCTY",
-    "AERO",
-    "ABM",
-    "AAE",
-    "AG_ED_LD",
-    "AG_S_M",
-    "AGSC_COM",
-    "AG_S_TCH",
-    "AFNR",
-    "AMS",
-    "ANESTH",
-    "AN_SCI",
-    "ANTHRO",
-    "ARABIC",
-    "ARCHST",
-    "ART_VS",
-    "ARTCE_VS",
-    "ARTDR_VS",
-    "ARTFI_VS",
-    "ARTGD_VS",
-    "ARTGE_VS",
-    "ARTPA_VS",
-    "ARTPH_VS",
-    "ARTPR_VS",
-    "ARTSC_VS",
-    "ARH_VS",
-    "ASTRON",
-    "ATHTRN",
-    "ATM_SC",
-    "BIOCHM",
-    "BIOL_EN",
-    "BIO_SC",
-    "BME",
-    "BBME",
-    "BIOMED",
-    "BL_STU",
-    "BUS_AD",
-    "CH_ENG",
-    "CHEM",
-    "CH_HTH",
-    "CHINESE",
-    "CV_ENG",
-    "CDS",
-    "CL_L_S",
-    "COMMUN",
-    "CMP_SC",
-    "CNST_DEM",
-    "DATA_SCI",
-    "DERM",
-    "DMU",
-    "DST_VS",
-    "ECONOM",
-    "EDUC_H",
-    "ED_LPA",
-    "ELSP",
-    "ESC_PS",
-    "ECE",
-    "EMR_ME",
-    "ENGINR",
-    "ENGLSH",
-    "ENV_SC",
-    "ENV_ST",
-    "F_C_MD",
-    "FILMS_VS",
-    "FINANC",
-    "F_W",
-    "FINPLN",
-    "FPM",
-    "F_S",
-    "FOREST",
-    "FRENCH",
-    "G_STUDY",
-    "GENETICS",
-    "GEOG",
-    "GEOL",
-    "GERMAN",
-    "GN_HES",
-    "GN_HON",
-    "GRAD",
-    "GREEK",
-    "HLTH_ADM",
-    "H_D_FS",
-    "HR_SCI",
-    "HLTH_HUM",
-    "HMI",
-    "HTH_PR",
-    "HLTH_SCI",
-    "HEBREW",
-    "HIST",
-    "HSP_MGMT",
-    "IEPG",
-    "IEPL",
-    "IEPR",
-    "IEPS",
-    "IEPW",
-    "IMSE",
-    "ISE",
-    "IS_LT",
-    "INFOINST",
-    "INFOTC",
-    "INTDSC",
-    "IN_MED",
-    "INTL_S",
-    "ITAL",
-    "JAPNSE",
-    "JOURN",
-    "KOREAN",
-    "LAB_AN",
-    "LATIN",
-    "LAW",
-    "LG_LT_CT",
-    "LTC",
-    "LTC_V",
-    "LINST",
-    "MAE",
-    "MANGMT",
-    "MATH",
-    "MDVL_REN",
-    "MED_ID",
-    "MICROB",
-    "MIL_SC",
-    "MPP",
-    "MRKTNG",
-    "MUS_APMS",
-    "MUS_EDUC",
-    "MUS_ENS",
-    "MUS_GENL",
-    "MUS_H_LI",
-    "MUS_I_VR",
-    "MUS_I_VT",
-    "MUS_THRY",
-    "MUSIC_NM",
-    "NAIS",
-    "NAT_R",
-    "NAVY",
-    "NEP",
-    "NEUROL",
-    "NEUROSCI",
-    "NU_ENG",
-    "NUCMED",
-    "NURSE",
-    "NUTRIT",
-    "OB_GYN",
-    "OC_THR",
-    "OPHTH",
-    "P_HLTH",
-    "PAW_EDUC",
-    "PEA_ST",
-    "PH_THR",
-    "PHIL",
-    "PHYSCS",
-    "PLNT_SCI",
-    "PM_REH",
-    "POL_SC",
-    "PORT",
-    "PRST",
-    "PSCHTY",
-    "PSYCH",
-    "PTH_AS",
-    "PUB_AF",
-    "RA_SCI",
-    "RADIOL",
-    "REL_ST",
-    "RM_LAN",
-    "RS_THR",
-    "RU_SOC",
-    "RUSS",
-    "S_A_ST",
-    "SLHS",
-    "SOC_WK",
-    "SOCIOL",
-    "SOIL",
-    "SPAN",
-    "SPC_ED",
-    "SRV_LRN",
-    "SSC",
-    "STAT",
-    "SURGRY",
-    "T_A_M",
-    "THEATR",
-    "TR_BIOSC",
-    "V_BSCI",
-    "V_M_S",
-    "V_PBIO",
-    "VET_TCH",
-    "WGST",
-  ];
+  const terms = termsList;
+  const subjects = coursePrefixes;
+    
   const grades = [
     "A+",
     "A",
@@ -249,48 +59,71 @@ function FormPage() {
     "W",
     "N/A",
   ];
-  const statuses = ["Taken", "Taking", "Transferred"];
+  const statuses = ["Taken", "In Progress", "Transferred"];
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-  
-    // 1) Define the course object
-    const course = {
-      programId: `${formData.subject} ${formData.courseNumber}`,
-      semester:  formData.term,
-      grade:     formData.grade,
-    };
-  
-    try {
-      // 2) Grab Firebase ID token
-      const idToken = await auth.currentUser.getIdToken();
-  
-      // 3) POST to your backend
-      const response = await fetch(
-        `${API_URL}/submit-course-history`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":  "application/json",
-            "Authorization": `Bearer ${idToken}`,
-          },
-          body: JSON.stringify({ courses: [course] }),
-        }
-      );
-  
-      // 4) Handle the JSON response
-      const data = await response.json();
-      if (response.ok) {
-        alert("Course successfully submitted!");
-      } else {
-        console.error("Failed response:", data);
-        alert("Failed to submit course: " + (data.error || "Unknown error"));
-      }
-    } catch (error) {
-      console.error("Submit error:", error);
-      alert("An error occurred while submitting the course.");
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const newCourse = {
+    programId: `${formData.subject} ${formData.courseNumber}`,
+    semester: convertToCode(formData.term),
+    grade: formData.grade,
+    status: formData.status,
   };
+
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+
+    // 1. Fetch current course history
+    const res = await fetch(`${API_URL}/course-histories`, {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    const histories = await res.json();
+
+    const userHistory = histories.find(
+      (h) => h.firebaseUid === auth.currentUser.uid
+    );
+
+    const existingCourses = userHistory?.courses || [];
+
+    // 2. Check for duplicates
+    const alreadyExists = existingCourses.some(
+      (course) =>
+        course.programId === newCourse.programId &&
+        course.semester === newCourse.semester
+    );
+
+    if (alreadyExists) {
+      alert("You’ve already added this course for that semester.");
+      return;
+    }
+
+    //Submit if it's not a duplicate
+    const response = await fetch(`${API_URL}/submit-course-history`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ courses: [newCourse] }),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("Course successfully submitted!");
+    } else {
+      console.error("Failed response:", data);
+      alert("Failed to submit course: " + (data.error || "Unknown error"));
+    }
+  } catch (error) {
+    console.error("Submit error:", error);
+    alert("An error occurred while submitting the course.");
+  }
+};
+
 
   const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 

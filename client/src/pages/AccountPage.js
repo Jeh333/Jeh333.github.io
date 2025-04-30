@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { auth } from "../firebase"; // only auth from your config
+import { auth } from "../firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth"; // onAuthStateChanged from firebase SDK
 import axios from "axios";
 
@@ -50,7 +51,7 @@ function AccountPage() {
 
   const handleChangePassword = async () => {
     try {
-      await auth.sendPasswordResetEmail(email);
+      await sendPasswordResetEmail(auth, email);
       setMessage("Password reset email sent! Check your inbox.");
     } catch (err) {
       console.error("Password reset error:", err);

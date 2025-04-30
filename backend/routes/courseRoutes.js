@@ -6,7 +6,7 @@ const pdfParse = require("pdf-parse");
 const CourseList = require("../models/CourseList");
 const CourseHistory = require("../models/CourseHistory");
 const verifyFirebaseToken = require("../middleware/verifyFirebaseToken");
-
+const mongoose = require("mongoose");
 
 const upload = multer({ dest: "uploads/" });
 
@@ -66,7 +66,12 @@ router.post(
         if (match) {
           const [, semester, subject, number, credits, grade] = match;
           if (grade === "W" || parseFloat(credits) === 0) continue;
-          courses.push({ programId: `${subject} ${number}`, semester, grade });
+          courses.push({
+            programId: `${subject} ${number}`,
+            semester,
+            grade,
+            status: "Taken",
+          });
         }
       }
 
@@ -107,21 +112,40 @@ router.post("/submit-course-history", verifyFirebaseToken, async (req, res) => {
 
   try {
     let hist = await CourseHistory.findOne({ firebaseUid });
+
     if (hist) {
-      hist.courses = courses;
+      const existing = hist.courses;
+
+      // Filter out any duplicates
+      const newUniqueCourses = courses.filter((newCourse) => {
+        return !existing.some(
+          (existingCourse) =>
+            existingCourse.programId === newCourse.programId &&
+            existingCourse.semester === newCourse.semester
+        );
+      });
+
+      hist.courses.push(...newUniqueCourses);
       await hist.save();
-      res.json({ message: "Course history updated", courseHistory: hist });
+
+      res.json({
+        message: "Course history updated",
+        added: newUniqueCourses.length,
+        totalCourses: hist.courses.length,
+      });
     } else {
       hist = await CourseHistory.create({ firebaseUid, courses });
-      res
-        .status(201)
-        .json({ message: "Course history created", courseHistory: hist });
+      res.status(201).json({
+        message: "Course history created",
+        courseHistory: hist,
+      });
     }
   } catch (err) {
     console.error("Submit history error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // Set major
 router.post("/set-major", verifyFirebaseToken, async (req, res) => {
@@ -131,9 +155,10 @@ router.post("/set-major", verifyFirebaseToken, async (req, res) => {
   try {
     const updated = await CourseHistory.findOneAndUpdate(
       { firebaseUid },
-      { major },
-      { new: true, upsert: false }
+      { $set: { major }, $setOnInsert: { courses: [] } },
+      { new: true, upsert: true }
     );
+
 
     if (!updated) {
       return res.status(404).json({ error: "Course history not found" });
@@ -175,12 +200,10 @@ router.get("/course-catalog", async (req, res) => {
 });
 
 //Process user data for graphs
-router.get("/statistics/:major", async (req, res) => {
+router.get("/statistics/:major", verifyFirebaseToken, async (req, res) => {
   try {
     const { major } = req.params;
     const statType = req.query.type || "distribution";
-    const CourseHistory = mongoose.model("CourseHistory");
-
     const normalizedMajor = major.trim().toLowerCase();
     const allHistories = await CourseHistory.find().lean();
     const histories = allHistories.filter(
@@ -199,10 +222,14 @@ router.get("/statistics/:major", async (req, res) => {
       });
 
       for (const course in gradeMap) {
-        const total = Object.values(gradeMap[course]).reduce((sum, count) => sum + count, 0);
+        const total = Object.values(gradeMap[course]).reduce(
+          (sum, count) => sum + count,
+          0
+        );
         for (const grade in gradeMap[course]) {
           gradeMap[course][grade] = +(
-            (gradeMap[course][grade] / total) * 100
+            (gradeMap[course][grade] / total) *
+            100
           ).toFixed(1);
         }
       }
@@ -213,10 +240,16 @@ router.get("/statistics/:major", async (req, res) => {
     histories.forEach((history) => {
       const semesterOrder = ["SP", "SS", "FS", "SU"];
       const sortedCourses = [...history.courses]
-        .filter(c => c.semester && c.programId)
+        .filter((c) => c.semester && c.programId)
         .sort((a, b) => {
-          const [aTerm, aYear] = [a.semester.slice(0, 2), parseInt(a.semester.slice(2))];
-          const [bTerm, bYear] = [b.semester.slice(0, 2), parseInt(b.semester.slice(2))];
+          const [aTerm, aYear] = [
+            a.semester.slice(0, 2),
+            parseInt(a.semester.slice(2)),
+          ];
+          const [bTerm, bYear] = [
+            b.semester.slice(0, 2),
+            parseInt(b.semester.slice(2)),
+          ];
           if (aYear !== bYear) return aYear - bYear;
           return semesterOrder.indexOf(aTerm) - semesterOrder.indexOf(bTerm);
         });
@@ -224,10 +257,16 @@ router.get("/statistics/:major", async (req, res) => {
       const regularTerms = ["SP", "FS"];
       const summerTerms = ["SS", "SU"];
 
-      const regularCourses = sortedCourses.filter(c => regularTerms.includes(c.semester.slice(0, 2)));
-      const summerCourses = sortedCourses.filter(c => summerTerms.includes(c.semester.slice(0, 2)));
+      const regularCourses = sortedCourses.filter((c) =>
+        regularTerms.includes(c.semester.slice(0, 2))
+      );
+      const summerCourses = sortedCourses.filter((c) =>
+        summerTerms.includes(c.semester.slice(0, 2))
+      );
 
-      const uniqueRegularSemesters = [...new Set(regularCourses.map(c => c.semester))];
+      const uniqueRegularSemesters = [
+        ...new Set(regularCourses.map((c) => c.semester)),
+      ];
       const semesterPosition = Object.fromEntries(
         uniqueRegularSemesters.map((s, i) => [s, `Semester ${i + 1}`])
       );
@@ -238,7 +277,7 @@ router.get("/statistics/:major", async (req, res) => {
         if (!relSemester) {
           relSemester = "Summer Semesters";
         }
-        const key = `${relSemester}::${course.programId}::${history.userId}`;
+        const key = `${relSemester}::${course.programId}::${history.firebaseUid}`;
         if (seenCourseSemesters.has(key)) return;
         seenCourseSemesters.add(key);
         if (!semesterMap[relSemester]) semesterMap[relSemester] = {};
@@ -251,7 +290,8 @@ router.get("/statistics/:major", async (req, res) => {
     for (const semester in semesterMap) {
       for (const course in semesterMap[semester]) {
         semesterMap[semester][course] = +(
-          (semesterMap[semester][course] / userCount) * 100
+          (semesterMap[semester][course] / userCount) *
+          100
         ).toFixed(1);
       }
     }
@@ -292,25 +332,36 @@ router.get("/api/user/courses", async (req, res) => {
 });
 
 //Delete user course
-router.delete("/api/user/courses/:id", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const courseId = req.params.id;
+router.delete(
+  "/api/user/courses/:id",
+  verifyFirebaseToken,
+  async (req, res) => {
+    try {
+      const firebaseUid = req.firebaseUid;
+      const courseId = req.params.id;
 
-    const courseHistory = await CourseHistory.findOne({ userId });
-    if (!courseHistory) return res.status(404).json({ error: "Course history not found" });
+      const courseHistory = await CourseHistory.findOne({ firebaseUid });
+      if (!courseHistory) {
+        return res.status(404).json({ error: "Course history not found" });
+      }
 
-    const courseIndex = courseHistory.courses.findIndex(c => c._id.toString() === courseId);
-    if (courseIndex === -1) return res.status(404).json({ error: "Course not found" });
+      const courseIndex = courseHistory.courses.findIndex(
+        (c) => c._id.toString() === courseId
+      );
+      if (courseIndex === -1) {
+        return res.status(404).json({ error: "Course not found" });
+      }
 
-    courseHistory.courses.splice(courseIndex, 1);
-    await courseHistory.save();
+      courseHistory.courses.splice(courseIndex, 1);
+      await courseHistory.save();
 
-    res.status(200).json({ message: "Course deleted successfully" });
-  } catch (err) {
-    console.error("Delete error:", err);
-    res.status(500).json({ error: "Failed to delete course" });
+      res.status(200).json({ message: "Course deleted successfully" });
+    } catch (err) {
+      console.error("Delete error:", err);
+      res.status(500).json({ error: "Failed to delete course" });
+    }
   }
-});
+);
+
 
 module.exports = router;

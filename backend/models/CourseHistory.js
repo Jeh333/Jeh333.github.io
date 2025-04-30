@@ -12,7 +12,8 @@ const CourseSchema = new mongoose.Schema({
   credits: { type: Number, min: 0 },
   status: {
     type: String,
-    enum: ["Taken", "Transferred"],
+    enum: ["Taken", "Transferred", "In Progress"],
+    default: "Taken",
   },
 });
 

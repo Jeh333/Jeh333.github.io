@@ -3,8 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import {createUserWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
 
-const API_URL = process.env.REACT_APP_API_URL;
-
 function SignupPage() {
   const [formData, setFormData] = useState({
     name: "",
