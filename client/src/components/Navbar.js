@@ -50,13 +50,19 @@ function AppNavbar() {
                 <Nav.Link as={Link} to="/visualizer" style={{ color: "black" }}>
                   Visualizer
                 </Nav.Link>
-                {/* ✨ NEW Account link */}
+                {/* NEW Account link */}
                 <Nav.Link as={Link} to="/account" style={{ color: "black" }}>
                   Account
                 </Nav.Link>
                 <Button variant="dark" onClick={handleLogout} size="sm">
                   Logout
                 </Button>
+                <Nav.Link as={Link} to="/statistics" style={{ color: "black" }}>
+                  Statistics
+                </Nav.Link>
+                <Nav.Link as={Link} to="/edit" style={{ color: "black" }}>
+                  Edit
+                </Nav.Link>
               </>
             ) : (
               <>

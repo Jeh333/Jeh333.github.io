@@ -163,4 +163,154 @@ router.get("/get-major", verifyFirebaseToken, async (req, res) => {
   }
 });
 
+// Route to get full course catalog
+router.get("/course-catalog", async (req, res) => {
+  try {
+    const allCourses = await CourseList.find({});
+    res.json(allCourses);
+  } catch (err) {
+    console.error("Error fetching course catalog:", err);
+    res.status(500).json({ error: "Failed to fetch course catalog" });
+  }
+});
+
+//Process user data for graphs
+router.get("/statistics/:major", async (req, res) => {
+  try {
+    const { major } = req.params;
+    const statType = req.query.type || "distribution";
+    const CourseHistory = mongoose.model("CourseHistory");
+
+    const normalizedMajor = major.trim().toLowerCase();
+    const allHistories = await CourseHistory.find().lean();
+    const histories = allHistories.filter(
+      (h) => h.major?.trim().toLowerCase() === normalizedMajor
+    );
+
+    if (statType === "grades") {
+      const gradeMap = {};
+      histories.forEach((history) => {
+        history.courses.forEach((course) => {
+          if (!course.programId || !course.grade) return;
+          if (!gradeMap[course.programId]) gradeMap[course.programId] = {};
+          gradeMap[course.programId][course.grade] =
+            (gradeMap[course.programId][course.grade] || 0) + 1;
+        });
+      });
+
+      for (const course in gradeMap) {
+        const total = Object.values(gradeMap[course]).reduce((sum, count) => sum + count, 0);
+        for (const grade in gradeMap[course]) {
+          gradeMap[course][grade] = +(
+            (gradeMap[course][grade] / total) * 100
+          ).toFixed(1);
+        }
+      }
+      return res.json(gradeMap);
+    }
+
+    const semesterMap = {};
+    histories.forEach((history) => {
+      const semesterOrder = ["SP", "SS", "FS", "SU"];
+      const sortedCourses = [...history.courses]
+        .filter(c => c.semester && c.programId)
+        .sort((a, b) => {
+          const [aTerm, aYear] = [a.semester.slice(0, 2), parseInt(a.semester.slice(2))];
+          const [bTerm, bYear] = [b.semester.slice(0, 2), parseInt(b.semester.slice(2))];
+          if (aYear !== bYear) return aYear - bYear;
+          return semesterOrder.indexOf(aTerm) - semesterOrder.indexOf(bTerm);
+        });
+
+      const regularTerms = ["SP", "FS"];
+      const summerTerms = ["SS", "SU"];
+
+      const regularCourses = sortedCourses.filter(c => regularTerms.includes(c.semester.slice(0, 2)));
+      const summerCourses = sortedCourses.filter(c => summerTerms.includes(c.semester.slice(0, 2)));
+
+      const uniqueRegularSemesters = [...new Set(regularCourses.map(c => c.semester))];
+      const semesterPosition = Object.fromEntries(
+        uniqueRegularSemesters.map((s, i) => [s, `Semester ${i + 1}`])
+      );
+
+      const seenCourseSemesters = new Set();
+      [...regularCourses, ...summerCourses].forEach((course) => {
+        let relSemester = semesterPosition[course.semester];
+        if (!relSemester) {
+          relSemester = "Summer Semesters";
+        }
+        const key = `${relSemester}::${course.programId}::${history.userId}`;
+        if (seenCourseSemesters.has(key)) return;
+        seenCourseSemesters.add(key);
+        if (!semesterMap[relSemester]) semesterMap[relSemester] = {};
+        semesterMap[relSemester][course.programId] =
+          (semesterMap[relSemester][course.programId] || 0) + 1;
+      });
+    });
+
+    const userCount = histories.length || 1;
+    for (const semester in semesterMap) {
+      for (const course in semesterMap[semester]) {
+        semesterMap[semester][course] = +(
+          (semesterMap[semester][course] / userCount) * 100
+        ).toFixed(1);
+      }
+    }
+
+    const orderedSemesterMap = {};
+    const semesterKeys = Object.keys(semesterMap).sort((a, b) => {
+      if (a === "Summer Semesters") return 1;
+      if (b === "Summer Semesters") return -1;
+
+      const aNum = parseInt(a.match(/\d+/)?.[0] || "0");
+      const bNum = parseInt(b.match(/\d+/)?.[0] || "0");
+      return aNum - bNum;
+    });
+
+    semesterKeys.forEach((key) => {
+      orderedSemesterMap[key] = semesterMap[key];
+    });
+
+    res.json(orderedSemesterMap);
+  } catch (err) {
+    console.error("Error generating statistics:", err);
+    res.status(500).json({ error: "Failed to get statistics" });
+  }
+});
+
+// Load the user's courses
+router.get("/api/user/courses", async (req, res) => {
+  try {
+    const userId = req.query.userId;
+    const user = await User.findById(userId).populate('courseHistory');
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json(user.courseHistory);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to load courses" });
+  }
+});
+
+//Delete user course
+router.delete("/api/user/courses/:id", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const courseId = req.params.id;
+
+    const courseHistory = await CourseHistory.findOne({ userId });
+    if (!courseHistory) return res.status(404).json({ error: "Course history not found" });
+
+    const courseIndex = courseHistory.courses.findIndex(c => c._id.toString() === courseId);
+    if (courseIndex === -1) return res.status(404).json({ error: "Course not found" });
+
+    courseHistory.courses.splice(courseIndex, 1);
+    await courseHistory.save();
+
+    res.status(200).json({ message: "Course deleted successfully" });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).json({ error: "Failed to delete course" });
+  }
+});
+
 module.exports = router;
