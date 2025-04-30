@@ -30,8 +30,9 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://jeh333.github.io", 
+      "https://jeh333.github.io",
       "https://jeh333-github-io.onrender.com",
+      "https://mucoursevisualizer.com",
     ],
     credentials: true,
   })
