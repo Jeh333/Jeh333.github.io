@@ -112,6 +112,9 @@ function LoginPage() {
         <p>
           Don't have an account? <Link to="/signup">Create Account</Link>
         </p>
+        <p className="mt-2">
+          <Link to="/reset-password">Forgot Password?</Link>
+        </p>
       </div>
     </div>
   );

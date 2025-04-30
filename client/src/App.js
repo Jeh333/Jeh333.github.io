@@ -10,6 +10,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import AccountPage from "./pages/AccountPage";
 import Statistics from "./pages/Statistics.js";
 import EditPage from './pages/EditPage.js';
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   return (
@@ -24,10 +25,8 @@ function App() {
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/edit" element={<EditPage />} />
         <Route path="/statistics" element={<Statistics />} />  
-        <Route
-          path="/visualizer"
-          element={<PrivateRoute element={<VisualizationPage />} />}
-        />
+        <Route path="/visualizer" element={<PrivateRoute element= {<VisualizationPage />} />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     </Router>
   );
