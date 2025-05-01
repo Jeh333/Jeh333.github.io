@@ -12,6 +12,7 @@
     "bootstrap": "^5.3.3",
     "chart.js": "^4.4.8",
     "d3": "^7.9.0",
+    "firebase": "^11.6.0",
     "force-graph": "^1.49.5",
     "react": "^19.0.0",
     "react-bootstrap": "^2.10.9",

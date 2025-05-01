@@ -451,10 +451,10 @@
   {
     "name": "Data Science",
     "types": [
-      "Arts and Science,\u00a0BS",
-      "Arts and Science,\u00a0Minor",
-      "Engineering,\u00a0BS",
-      "Engineering,\u00a0Minor"
+      "Arts and Science, BS",
+      "Arts and Science, Minor",
+      "Engineering, BS",
+      "Engineering, Minor"
     ]
   },
   {
@@ -1377,7 +1377,7 @@
   {
     "name": "Plant Sciences (Breeding",
     "types": [
-      "Biology and Biotechnology),\u00a0BS"
+      "Biology and Biotechnology),BS"
     ]
   },
   {
@@ -1679,7 +1679,7 @@
   {
     "name": "Speech",
     "types": [
-      "Language and Hearing Sciences,\u00a0BHS"
+      "Language and Hearing Sciences, BHS"
     ]
   },
   {
