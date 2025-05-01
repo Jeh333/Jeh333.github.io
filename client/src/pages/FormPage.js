@@ -260,7 +260,7 @@ const handleSetMajor = async () => {
       <hr className="my-5" />
 
       {/* Manual Entry Section */}
-      <h2 className="mb-4">Or Enter Course History Manually</h2>
+      <h2 className="mb-4">Enter Course History Manually</h2>
       <Form onSubmit={handleSubmit}>
         <h4 className="mb-3">Select from the Course List</h4>
 
