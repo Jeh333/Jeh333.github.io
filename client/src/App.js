@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { HashRouter as Router, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import FormPage from "./pages/FormPage";
 import AppNavbar from "./components/Navbar";
@@ -8,7 +8,7 @@ import VisualizationPage from "./pages/VisualizationPage";
 import PrivateRoute from "./components/PrivateRoute";
 import AccountPage from "./pages/AccountPage";
 import Statistics from "./pages/Statistics.js";
-import EditPage from './pages/EditPage.js';
+import EditPage from "./pages/EditPage.js";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
@@ -22,8 +22,11 @@ function App() {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/edit" element={<EditPage />} />
-        <Route path="/statistics" element={<Statistics />} />  
-        <Route path="/visualizer" element={<PrivateRoute element= {<VisualizationPage />} />} />
+        <Route path="/statistics" element={<Statistics />} />
+        <Route
+          path="/visualizer"
+          element={<PrivateRoute element={<VisualizationPage />} />}
+        />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Routes>
     </Router>
