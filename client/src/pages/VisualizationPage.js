@@ -100,11 +100,14 @@ function VisualizationPage() {
 
     const container = svg.append("g");
 
-    svg.call(
-      d3.zoom().on("zoom", (event) => {
-        container.attr("transform", event.transform);
-      })
-    );
+    const zoom = d3.zoom().on("zoom", (event) => {
+      container.attr("transform", event.transform);
+    });
+
+    svg.call(zoom);
+
+    // Reset to no zoom (identity transform)
+    svg.transition().duration(0).call(zoom.transform, d3.zoomIdentity);
 
     const simulation = d3
       .forceSimulation(nodes)
@@ -113,11 +116,16 @@ function VisualizationPage() {
         d3
           .forceLink(links)
           .id((d) => d.id)
-          .distance(150)
-          .strength(0.8)
+          .distance(100)
+          .strength(0.5)
       )
-      .force("charge", d3.forceManyBody().strength(-300))
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force("charge", d3.forceManyBody().strength(-80))
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force(
+        "collision",
+        d3.forceCollide().radius((d) => (d.group === "semester" ? 30 : 12))
+      );
+
 
     const link = container
       .append("g")
@@ -172,7 +180,7 @@ function VisualizationPage() {
         d3
           .drag()
           .on("start", (event, d) => {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
+            if (!event.active) simulation.alphaTarget(0.1).restart();
             d.fx = d.x;
             d.fy = d.y;
           })
@@ -366,6 +374,34 @@ function VisualizationPage() {
       <h2 style={{ textAlign: "center", marginTop: "1rem" }}>
         Course Visualizer
       </h2>
+      {(viewMode === "single" || viewMode === "current") && (
+        <div
+          style={{
+            textAlign: "center",
+            marginBottom: "0.5rem",
+            fontSize: "0.9rem",
+            color: "#555",
+          }}
+        >
+          {(() => {
+            let majorToShow = "";
+            if (viewMode === "single" && histories[currentUserIndex]) {
+              majorToShow = histories[currentUserIndex].major || "Not set";
+            } else if (viewMode === "current") {
+              const currentUser = histories.find(
+                (h) => h.firebaseUid === loggedInFirebaseUid
+              );
+              majorToShow = currentUser?.major || "Not set";
+            }
+            return (
+              <span>
+                Showing data for major: <strong>{majorToShow}</strong>
+              </span>
+            );
+          })()}
+        </div>
+      )}
+
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
         {/* Major Dropdown */}
         <select

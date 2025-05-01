@@ -26,11 +26,7 @@ function AppNavbar() {
         <Navbar.Brand
           as={Link}
           to="/"
-          style={{
-            color: "black",
-            fontWeight: "bold",
-            marginRight: "auto",
-          }}
+          style={{ color: "black", fontWeight: "bold", marginRight: "auto" }}
         >
           Mizzou Course Visualizer
         </Navbar.Brand>
@@ -40,21 +36,21 @@ function AppNavbar() {
             <Nav.Link as={Link} to="/" style={{ color: "black" }}>
               Home
             </Nav.Link>
-            <Nav.Link as={Link} to="/form" style={{ color: "black" }}>
-              Form
-            </Nav.Link>
-            <Nav.Link as={Link} to="/visualizer" style={{ color: "black" }}>
-              Visualizer
-            </Nav.Link>
-            <Nav.Link as={Link} to="/statistics" style={{ color: "black" }}>
-              Statistics
-            </Nav.Link>
-            <Nav.Link as={Link} to="/edit" style={{ color: "black" }}>
-              Edit
-            </Nav.Link>
 
             {token ? (
               <>
+                <Nav.Link as={Link} to="/form" style={{ color: "black" }}>
+                  Form
+                </Nav.Link>
+                <Nav.Link as={Link} to="/visualizer" style={{ color: "black" }}>
+                  Visualizer
+                </Nav.Link>
+                <Nav.Link as={Link} to="/statistics" style={{ color: "black" }}>
+                  Statistics
+                </Nav.Link>
+                <Nav.Link as={Link} to="/edit" style={{ color: "black" }}>
+                  Edit
+                </Nav.Link>
                 <Nav.Link as={Link} to="/account" style={{ color: "black" }}>
                   Account
                 </Nav.Link>
