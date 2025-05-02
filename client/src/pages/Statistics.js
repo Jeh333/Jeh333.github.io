@@ -29,16 +29,23 @@ function Statistics() {
   const [statType, setStatType] = useState("distribution");
   const [selectedPrefixes, setSelectedPrefixes] = useState([]);
   const [showPrefixFilter, setShowPrefixFilter] = useState(false);
-
+  const [showTop10, setShowTop10] = useState(false);
   useEffect(() => {
     setAvailableMajors(majors.map((m) => m.name));
+  }, []);
+
+  useEffect(() => {
+    const savedMajor = localStorage.getItem("selectedMajor");
+    if (savedMajor) {
+      setMajor(savedMajor);
+    }
   }, []);
 
   const handleSubmit = async () => {
     if (!major) return;
 
     try {
-      const idToken = await auth.currentUser.getIdToken(); // 🔐 Secure token
+      const idToken = await auth.currentUser.getIdToken();
 
       const res = await fetch(
         `${API_URL}/statistics/${major}?type=${statType}`,
@@ -64,7 +71,11 @@ function Statistics() {
       <Form.Select
         className="my-4 w-50 mx-auto"
         value={major}
-        onChange={(e) => setMajor(e.target.value)}
+        onChange={(e) => {
+          const selected = e.target.value;
+          setMajor(selected);
+          localStorage.setItem("selectedMajor", selected);
+        }}
       >
         <option value="">Select a Major</option>
         {availableMajors.map((m) => (
@@ -89,6 +100,14 @@ function Statistics() {
         className="mb-2 text-start w-50 mx-auto"
         checked={showPrefixFilter}
         onChange={(e) => setShowPrefixFilter(e.target.checked)}
+      />
+
+      <Form.Check
+        type="checkbox"
+        label="Show Only Top 10"
+        className="mb-2 text-start w-50 mx-auto"
+        checked={showTop10}
+        onChange={(e) => setShowTop10(e.target.checked)}
       />
 
       {showPrefixFilter && (
@@ -126,7 +145,7 @@ function Statistics() {
 
       {statType === "distribution"
         ? Object.entries(semesterData).map(([semester, courseCounts]) => {
-            const filteredEntries = Object.entries(courseCounts).filter(
+            let filteredEntries = Object.entries(courseCounts).filter(
               ([id]) => {
                 const prefix = id
                   .substring(0, id.lastIndexOf(" "))
@@ -140,6 +159,12 @@ function Statistics() {
                 );
               }
             );
+
+            if (showTop10) {
+              filteredEntries = filteredEntries
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            }
 
             if (filteredEntries.length === 0) return null;
 

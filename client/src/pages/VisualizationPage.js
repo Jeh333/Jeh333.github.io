@@ -20,6 +20,7 @@ function VisualizationPage() {
   const [isDataReady, setIsDataReady] = useState(false);
   const [selectedMajor, setSelectedMajor] = useState("");
 
+  // Helper function to compute a sortable rank for a semester code (like SP23)
   const getSemesterRank = (code) => {
     const season = code.slice(0, 2);
     const year = parseInt(code.slice(2), 10);
@@ -33,13 +34,15 @@ function VisualizationPage() {
 
     return fullYear * 10 + seasonOrder;
   };
-
+  // Main graph drawing function
   const drawGraph = useCallback((userHistories, semester = "") => {
     const allCourseData = [];
 
+    // Build a set of unique semesters for this user
     userHistories.forEach((history) => {
       const studentCourses = history.courses || [];
 
+      // Map semesters to labels like 'Semester 1', 'Semester 2', etc.
       const semesterSet = new Set();
       studentCourses.forEach((c) => c.semester && semesterSet.add(c.semester));
       const sortedSemesters = Array.from(semesterSet).sort(
@@ -51,6 +54,7 @@ function VisualizationPage() {
         semesterMap.set(code, `Semester ${idx + 1}`);
       });
 
+      // Collect the course data, filtered by semester if specified
       studentCourses.forEach((course) => {
         if (!course.semester) return;
         const label = semesterMap.get(course.semester);
@@ -71,33 +75,40 @@ function VisualizationPage() {
     allCourseData.forEach((course) => {
       const { programId, normalizedSemester, grade } = course;
 
+      // Define unique node IDs for the semester and the course-semester combination
       const semesterNodeId = normalizedSemester;
       const courseNodeId = `${programId}__${normalizedSemester}`;
 
+      // If the semester node hasn't been added yet, add it to the nodes list
       if (!nodeSet.has(semesterNodeId)) {
         nodes.push({ id: semesterNodeId, group: "semester" });
         nodeSet.add(semesterNodeId);
       }
 
+      // If the course node hasn't been added yet, add it to the nodes list
       if (!nodeSet.has(courseNodeId)) {
         nodes.push({
-          id: courseNodeId,
-          group: "course",
-          displayName: programId,
-          grade: grade,
+          id: courseNodeId, // unique course node ID (with semester)
+          group: "course", // 'course' group for styling
+          displayName: programId, // course code to display (e.g., CMP_SC 1010)
+          grade: grade, // course grade (used for potential color coding)
         });
         nodeSet.add(courseNodeId);
       }
 
+      // Add a link (edge) connecting the semester node to the course node
       links.push({ source: semesterNodeId, target: courseNodeId });
     });
 
+    // Set the width and height of the SVG container
     const width = window.innerWidth;
     const height = window.innerHeight - 150;
 
+    // Select the SVG element using the React ref and clear any existing content
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
+    // Append a new <g> element to serve as the main container for the graph
     const container = svg.append("g");
 
     const zoom = d3.zoom().on("zoom", (event) => {
@@ -125,7 +136,6 @@ function VisualizationPage() {
         "collision",
         d3.forceCollide().radius((d) => (d.group === "semester" ? 30 : 12))
       );
-
 
     const link = container
       .append("g")
