@@ -5,7 +5,6 @@ import coursePrefixes from "../data/coursePrefixes.json";
 import { auth } from "../firebase";
 import termsList from "../data/termsList";
 
-
 const API_URL =
   process.env.NODE_ENV === "production"
     ? process.env.REACT_APP_API_URL
@@ -17,7 +16,6 @@ function FormPage() {
     subject: "",
     courseNumber: "",
     grade: "",
-    status: "",
   });
 
   const convertToCode = (fullTerm) => {
@@ -32,6 +30,7 @@ function FormPage() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [major, setMajor] = useState("");
+
   useEffect(() => {
     const savedMajor = localStorage.getItem("selectedMajor");
     if (savedMajor) {
@@ -41,7 +40,7 @@ function FormPage() {
 
   const terms = termsList;
   const subjects = coursePrefixes;
-    
+
   const grades = [
     "A+",
     "A",
@@ -59,71 +58,63 @@ function FormPage() {
     "W",
     "N/A",
   ];
-  const statuses = ["Taken", "In Progress", "Transferred"];
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const newCourse = {
-    programId: `${formData.subject} ${formData.courseNumber}`,
-    semester: convertToCode(formData.term),
-    grade: formData.grade,
-    status: formData.status,
+    const newCourse = {
+      programId: `${formData.subject} ${formData.courseNumber}`,
+      semester: convertToCode(formData.term),
+      grade: formData.grade,
+    };
+
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+
+      const res = await fetch(`${API_URL}/course-histories`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+
+      const histories = await res.json();
+
+      const userHistory = histories.find(
+        (h) => h.firebaseUid === auth.currentUser.uid
+      );
+
+      const existingCourses = userHistory?.courses || [];
+
+      const alreadyExists = existingCourses.some(
+        (course) =>
+          course.programId === newCourse.programId &&
+          course.semester === newCourse.semester
+      );
+
+      if (alreadyExists) {
+        alert("You’ve already added this course for that semester.");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/submit-course-history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ courses: [newCourse] }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert("Course successfully submitted!");
+      } else {
+        console.error("Failed response:", data);
+        alert("Failed to submit course: " + (data.error || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      alert("An error occurred while submitting the course.");
+    }
   };
-
-  try {
-    const idToken = await auth.currentUser.getIdToken();
-
-    // 1. Fetch current course history
-    const res = await fetch(`${API_URL}/course-histories`, {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      },
-    });
-
-    const histories = await res.json();
-
-    const userHistory = histories.find(
-      (h) => h.firebaseUid === auth.currentUser.uid
-    );
-
-    const existingCourses = userHistory?.courses || [];
-
-    // 2. Check for duplicates
-    const alreadyExists = existingCourses.some(
-      (course) =>
-        course.programId === newCourse.programId &&
-        course.semester === newCourse.semester
-    );
-
-    if (alreadyExists) {
-      alert("You’ve already added this course for that semester.");
-      return;
-    }
-
-    //Submit if it's not a duplicate
-    const response = await fetch(`${API_URL}/submit-course-history`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({ courses: [newCourse] }),
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      alert("Course successfully submitted!");
-    } else {
-      console.error("Failed response:", data);
-      alert("Failed to submit course: " + (data.error || "Unknown error"));
-    }
-  } catch (error) {
-    console.error("Submit error:", error);
-    alert("An error occurred while submitting the course.");
-  }
-};
-
 
   const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
 
@@ -133,28 +124,18 @@ const handleSubmit = async (e) => {
       alert("Please select a file.");
       return;
     }
-  
+
     try {
-      // 1) Firebase ID token
       const idToken = await auth.currentUser.getIdToken();
-  
-      // 2) Build FormData
       const fd = new FormData();
       fd.append("pdf", selectedFile);
-  
-      // 3) POST to your backend
-      const response = await fetch(
-        `${API_URL}/upload`,
-        {
-          method: "POST",
-          headers: {
-            // Content-Type is auto-set for multipart
-            "Authorization": `Bearer ${idToken}`,
-          },
-          body: fd,
-        }
-      );
-  
+
+      const response = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${idToken}` },
+        body: fd,
+      });
+
       const data = await response.json();
       if (response.ok) {
         alert("Upload successful! Parsed courses: " + data.courseCount);
@@ -167,7 +148,6 @@ const handleSubmit = async (e) => {
       alert("Could not connect to server.");
     }
   };
-  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -177,32 +157,30 @@ const handleSubmit = async (e) => {
     }));
   };
 
-const handleSetMajor = async () => {
-  try {
-    const idToken = await auth.currentUser.getIdToken(); 
-    const res = await fetch(`${API_URL}/set-major`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify({ major }), 
-    });
+  const handleSetMajor = async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/set-major`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ major }),
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      alert("Major set successfully!");
-    } else {
-      console.error("Failed to set major:", data);
-      alert("Failed to set major: " + (data.error || "Unknown error"));
+      const data = await res.json();
+      if (res.ok) {
+        alert("Major set successfully!");
+      } else {
+        console.error("Failed to set major:", data);
+        alert("Failed to set major: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      console.error("Error setting major:", err);
+      alert("An error occurred while setting the major.");
     }
-  } catch (err) {
-    console.error("Error setting major:", err);
-    alert("An error occurred while setting the major.");
-  }
-};
-
-
+  };
 
   return (
     <Container className="mt-5">
@@ -236,6 +214,7 @@ const handleSetMajor = async () => {
         Save Major
       </Button>
       <hr className="my-5" />
+
       {/* PDF Upload Section */}
       <div className="mb-5">
         <h2 className="mb-4">Upload Degree Audit</h2>
@@ -334,23 +313,6 @@ const handleSetMajor = async () => {
               </Form.Select>
             </Form.Group>
           </Col>
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Course Status</Form.Label>
-              <Form.Select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="">Select Status</option>
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Col>
         </Row>
 
         <Row className="mt-4">
@@ -363,7 +325,6 @@ const handleSetMajor = async () => {
             >
               Submit
             </Button>
-
             <Button variant="secondary" type="reset" size="lg">
               Reset
             </Button>

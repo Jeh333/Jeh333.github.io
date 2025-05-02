@@ -2,3 +2,4 @@ backend/.env
 DS_Store
 backend/serviceAccountKey.json
 .vs
+backend/cleanMajors.js
