@@ -81,11 +81,21 @@ router.post(
 
       let courseHistory = await CourseHistory.findOne({ firebaseUid });
       if (courseHistory) {
-        courseHistory.courses = courses;
+        const existingKeys = new Set(
+          courseHistory.courses.map((c) => `${c.programId}_${c.semester}_${c.grade}`)
+        );
+
+        const uniqueNewCourses = courses.filter((newCourse) => {
+          const key = `${newCourse.programId}_${newCourse.semester}_${newCourse.grade}`;
+          return !existingKeys.has(key);
+        });
+
+        courseHistory.courses.push(...uniqueNewCourses);
         await courseHistory.save();
       } else {
         courseHistory = await CourseHistory.create({ firebaseUid, courses });
       }
+
 
       fs.unlinkSync(file.path);
       return res

@@ -39,7 +39,7 @@ function LoginPage() {
       // 3) Grab the Firebase ID token
       const idToken = await firebaseUser.getIdToken();
 
-      // 4) Send token to your backend
+      // 4) Send token to backend
       const response = await fetch(`${API_URL}/users/login`, {
         method: "POST",
         headers: {
@@ -68,56 +68,68 @@ function LoginPage() {
     }
   };
 
-  return (
-    <div className="login-page">
-      <h2 className="mb-4">Login</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            Email:
-          </label>
-          <input
-            type="email"
-            id="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="you@domain.com"
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password:
-          </label>
-          <input
-            type="password"
-            id="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
-      <div className="text-center mt-3">
-        <p>
-          Don't have an account? <Link to="/signup">Create Account</Link>
-        </p>
-        <p className="mt-2">
-          <Link to="/reset-password">Forgot Password?</Link>
-        </p>
+return (
+  <div className="login-page">
+    {/* Page header */}
+    <h2 className="mb-4">Login</h2>
+
+    {/* Display error message if login fails */}
+    {error && <div className="alert alert-danger">{error}</div>}
+
+    {/* Login form */}
+    <form onSubmit={handleSubmit}>
+      {/* Email input field */}
+      <div className="mb-3">
+        <label htmlFor="email" className="form-label">
+          Email:
+        </label>
+        <input
+          type="email"
+          id="email"
+          className="form-control"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="you@umsystem.edu"
+        />
       </div>
+
+      {/* Password input field */}
+      <div className="mb-3">
+        <label htmlFor="password" className="form-label">
+          Password:
+        </label>
+        <input
+          type="password"
+          id="password"
+          className="form-control"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
+
+      {/* Submit button: disabled while loading */}
+      <button
+        type="submit"
+        className="btn btn-primary w-100"
+        disabled={loading}
+      >
+        {loading ? "Logging in..." : "Login"}
+      </button>
+    </form>
+
+    {/* Links to signup and password reset */}
+    <div className="text-center mt-3">
+      <p>
+        Don't have an account? <Link to="/signup">Create Account</Link>
+      </p>
+      <p className="mt-2">
+        <Link to="/reset-password">Forgot Password?</Link>
+      </p>
     </div>
-  );
+  </div>
+);
 }
 
 export default LoginPage;

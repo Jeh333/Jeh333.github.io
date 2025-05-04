@@ -1,18 +1,22 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
-import {createUserWithEmailAndPassword, sendEmailVerification} from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function SignupPage() {
   const [formData, setFormData] = useState({
-    name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
-  const navigate               = useNavigate();
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,33 +28,35 @@ function SignupPage() {
     setLoading(true);
     setError("");
 
-    if (formData.password !== formData.confirmPassword) {
+    const { email, password, confirmPassword } = formData;
+
+    // Require umsystem.edu email
+    if (!email.toLowerCase().endsWith("@umsystem.edu")) {
+      setError("Only @umsystem.edu email addresses are allowed.");
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
       setError("Passwords do not match!");
       setLoading(false);
       return;
     }
 
     try {
-      // 1) Create user in Firebase
       const userCredential = await createUserWithEmailAndPassword(
         auth,
-        formData.email,
-        formData.password
+        email,
+        password
       );
       const firebaseUser = userCredential.user;
 
-      // 2) Send verification email
       await sendEmailVerification(firebaseUser);
       alert(
-        "A verification email has been sent. " +
-        "Please check your inbox and verify before logging in."
+        "A verification email has been sent. Please verify before logging in."
       );
       setLoading(false);
-      navigate("/login"); // send them to login so they can verify and then log in
-      return;
-
-      // const idToken = await firebaseUser.getIdToken();
-      // await fetch(`${API_URL}/signup`, { … });
+      navigate("/login");
     } catch (err) {
       console.error("Signup error:", err);
       setError(err.message || "Failed to sign up.");
@@ -64,19 +70,9 @@ function SignupPage() {
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="name" className="form-label">Name:</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            className="form-control"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">Email:</label>
+          <label htmlFor="email" className="form-label">
+            UMSystem Email:
+          </label>
           <input
             type="email"
             id="email"
@@ -85,10 +81,13 @@ function SignupPage() {
             value={formData.email}
             onChange={handleChange}
             required
+            placeholder="yourname@umsystem.edu"
           />
         </div>
         <div className="mb-3">
-          <label htmlFor="password" className="form-label">Password:</label>
+          <label htmlFor="password" className="form-label">
+            Password:
+          </label>
           <input
             type="password"
             id="password"

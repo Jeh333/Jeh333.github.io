@@ -29,8 +29,6 @@ const EditPage = () => {
     "N/A",
   ];
 
-  const statuses = ["Taken", "Taking", "Transferred"];
-
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -150,18 +148,6 @@ const EditPage = () => {
                     </option>
                   ))}
                 </select>
-                <select
-                  value={course.status || ""}
-                  onChange={(e) =>
-                    handleChange(index, "status", e.target.value)
-                  }
-                >
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
               </>
             ) : (
               <>
@@ -173,9 +159,6 @@ const EditPage = () => {
                 </div>
                 <div>
                   <strong>Grade:</strong> {course.grade || "-"}
-                </div>
-                <div>
-                  <strong>Status:</strong> {course.status || "-"}
                 </div>
               </>
             )}
