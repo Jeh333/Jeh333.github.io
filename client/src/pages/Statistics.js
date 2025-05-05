@@ -12,6 +12,8 @@ import { Bar } from "react-chartjs-2";
 import { Form, Button } from "react-bootstrap";
 import majors from "../data/majors.json";
 import { auth } from "../firebase";
+import "../styles/global.css";
+import "../styles/Statistics.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -30,6 +32,7 @@ function Statistics() {
   const [selectedPrefixes, setSelectedPrefixes] = useState([]);
   const [showPrefixFilter, setShowPrefixFilter] = useState(false);
   const [showTop10, setShowTop10] = useState(false);
+
   useEffect(() => {
     setAvailableMajors(majors.map((m) => m.name));
   }, []);
@@ -56,7 +59,7 @@ function Statistics() {
         }
       );
 
-      const text = await res.text(); // defensive parsing
+      const text = await res.text();
       const data = JSON.parse(text);
       setSemesterData(data);
     } catch (err) {
@@ -113,14 +116,7 @@ function Statistics() {
       {showPrefixFilter && (
         <Form.Group className="mb-3 text-start w-50 mx-auto">
           <Form.Label>Filter by Course Prefix</Form.Label>
-          <div
-            style={{
-              maxHeight: "200px",
-              overflowY: "scroll",
-              border: "1px solid #ccc",
-              padding: "10px",
-            }}
-          >
+          <div className="prefix-filter-box">
             {COURSE_PREFIXES.map((prefix) => (
               <Form.Check
                 key={prefix}
@@ -174,11 +170,13 @@ function Statistics() {
             return (
               <div key={semester} className="mb-5">
                 <h4>{semester}</h4>
-                <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+                <div className="chart-container">
                   <Bar
                     data={{
                       labels,
-                      datasets: [{ data: values, backgroundColor: "#36A2EB" }],
+                      datasets: [
+                        { data: values, backgroundColor: "#36A2EB" },
+                      ],
                     }}
                     options={{
                       responsive: true,
@@ -220,7 +218,7 @@ function Statistics() {
               return (
                 <div key={courseId} className="mb-5">
                   <h4>{courseId}</h4>
-                  <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+                  <div className="chart-container">
                     <Bar
                       data={{
                         labels,
