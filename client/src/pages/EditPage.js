@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import termsList from "../data/termsList.json";
+import "../styles/global.css";
+import "../styles/EditPage.css";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -123,7 +125,7 @@ const EditPage = () => {
 
   return (
     <div style={{ padding: "1rem" }}>
-      <h2>Edit Your Courses</h2>
+      <h2 className="text-center">Edit Your Courses</h2>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
         {courses.map((course, index) => (
           <div

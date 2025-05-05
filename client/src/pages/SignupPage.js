@@ -5,6 +5,8 @@ import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
 } from "firebase/auth";
+import "../styles/global.css";
+import "../styles/SignUpPage.css";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -66,7 +68,7 @@ function SignupPage() {
 
   return (
     <div className="signup-page">
-      <h2 className="mb-4">Create Account</h2>
+      <h2 className="mb-4 text-center">Create Account</h2>
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
@@ -122,7 +124,7 @@ function SignupPage() {
       </form>
       <div className="text-center mt-3">
         <p>
-          Already have an account? <Link to="/login">Login</Link>
+          Already have an account? Login <Link to="/login" className="text-primary">here.</Link>
         </p>
       </div>
     </div>

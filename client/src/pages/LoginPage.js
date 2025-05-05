@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
+import "../styles/global.css";
+import "../styles/LoginPage.css";
 
 // Choose API_URL (Render) if available, otherwise use BACKEND_URL or localhost
 const API_URL =
@@ -71,7 +73,7 @@ function LoginPage() {
 return (
   <div className="login-page">
     {/* Page header */}
-    <h2 className="mb-4">Login</h2>
+    <h2 className="mb-4 text-center">Login</h2>
 
     {/* Display error message if login fails */}
     {error && <div className="alert alert-danger">{error}</div>}
@@ -81,7 +83,7 @@ return (
       {/* Email input field */}
       <div className="mb-3">
         <label htmlFor="email" className="form-label">
-          Email:
+          UMSystem Email:
         </label>
         <input
           type="email"
@@ -121,11 +123,11 @@ return (
 
     {/* Links to signup and password reset */}
     <div className="text-center mt-3">
-      <p>
-        Don't have an account? <Link to="/signup">Create Account</Link>
-      </p>
       <p className="mt-2">
-        <Link to="/reset-password">Forgot Password?</Link>
+      Forgot Password? Reset <Link to="/reset-password" className="text-primary">here.</Link>
+      </p>
+      <p>
+        Don't have an account? Sign up <Link to="/signup" className="text-primary">here.</Link>
       </p>
     </div>
   </div>

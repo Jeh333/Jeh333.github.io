@@ -3,6 +3,8 @@ import * as d3 from "d3";
 import axios from "axios";
 import { auth } from "../firebase";
 import majors from "../data/majors.json";
+import "../styles/global.css";
+import "../styles/VisualizationPage.css";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -413,6 +415,7 @@ function VisualizationPage() {
       )}
 
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+
         {/* Major Dropdown */}
         <select
           onChange={handleMajorChange}
@@ -431,7 +434,7 @@ function VisualizationPage() {
         <select
           onChange={handleSemesterChange}
           value={selectedSemester}
-          style={{ marginBottom: "1rem", marginRight: "10px" }}
+          style={{ marginBottom: "1rem", marginRight: "10px", width: "250px"  }}
         >
           <option value="">All Semesters</option>
           {availableSemesters.map((semester) => (
@@ -442,19 +445,6 @@ function VisualizationPage() {
         </select>
 
         {/* Control Buttons */}
-        <button
-          onClick={handleSingleUser}
-          style={{
-            margin: "0 5px",
-            backgroundColor: viewMode === "single" ? "#F1B82D" : "#6c757d",
-            color: viewMode === "single" ? "black" : "white",
-            fontWeight: viewMode === "single" ? "bold" : "",
-            border: "2px solid black",
-          }}
-        >
-          Single User
-        </button>
-
         <button
           onClick={handleCurrentUser}
           style={{
@@ -467,7 +457,7 @@ function VisualizationPage() {
         >
           Current User
         </button>
-
+        
         <button
           onClick={handleAllUsers}
           style={{
@@ -479,6 +469,19 @@ function VisualizationPage() {
           }}
         >
           All Users
+        </button>
+
+        <button
+          onClick={handleSingleUser}
+          style={{
+            margin: "0 5px",
+            backgroundColor: viewMode === "single" ? "#F1B82D" : "#6c757d",
+            color: viewMode === "single" ? "black" : "white",
+            fontWeight: viewMode === "single" ? "bold" : "",
+            border: "2px solid black",
+          }}
+        >
+          Single User
         </button>
 
         <button
@@ -510,4 +513,3 @@ function VisualizationPage() {
 }
 
 export default VisualizationPage;
-

@@ -1,6 +1,7 @@
 import React from "react";
 import { Navbar, Nav, Container, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import "../styles/Navbar.css";
 
 function AppNavbar() {
   const navigate = useNavigate();
@@ -13,57 +14,50 @@ function AppNavbar() {
   };
 
   return (
-    <Navbar
-      style={{
-        backgroundColor: "#FDB719",
-        boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.2)",
-        padding: "8px 20px",
-      }}
-      variant="light"
-      expand="lg"
-    >
+    <Navbar className="navbar-custom" variant="light" expand="lg">
       <Container fluid>
-        <Navbar.Brand
-          as={Link}
-          to="/"
-          style={{ color: "black", fontWeight: "bold", marginRight: "auto" }}
-        >
+        <Navbar.Brand as={Link} to="/" className="navbar-brand-custom">
           Mizzou Course Visualizer
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto" style={{ gap: "20px", marginRight: "20px" }}>
-            <Nav.Link as={Link} to="/" style={{ color: "black" }}>
+          <Nav className="ms-auto navbar-nav-custom">
+            <Nav.Link as={Link} to="/" className="nav-link-custom">
               Home
             </Nav.Link>
 
             {token ? (
               <>
-                <Nav.Link as={Link} to="/form" style={{ color: "black" }}>
+                <Nav.Link as={Link} to="/form" className="nav-link-custom">
                   Form
                 </Nav.Link>
-                <Nav.Link as={Link} to="/visualizer" style={{ color: "black" }}>
+                <Nav.Link as={Link} to="/visualizer" className="nav-link-custom">
                   Visualizer
                 </Nav.Link>
-                <Nav.Link as={Link} to="/statistics" style={{ color: "black" }}>
+                <Nav.Link as={Link} to="/statistics" className="nav-link-custom">
                   Statistics
                 </Nav.Link>
-                <Nav.Link as={Link} to="/edit" style={{ color: "black" }}>
+                <Nav.Link as={Link} to="/edit" className="nav-link-custom">
                   Edit
                 </Nav.Link>
-                <Nav.Link as={Link} to="/account" style={{ color: "black" }}>
+                <Nav.Link as={Link} to="/account" className="nav-link-custom">
                   Account
                 </Nav.Link>
-                <Button variant="dark" onClick={handleLogout} size="sm">
+                <Button
+                  variant="dark"
+                  onClick={handleLogout}
+                  size="sm"
+                  className="navbar-button"
+                >
                   Logout
                 </Button>
               </>
             ) : (
               <>
-                <Nav.Link as={Link} to="/login" style={{ color: "black" }}>
+                <Nav.Link as={Link} to="/login" className="nav-link-custom">
                   Login
                 </Nav.Link>
-                <Nav.Link as={Link} to="/signup" style={{ color: "black" }}>
+                <Nav.Link as={Link} to="/signup" className="nav-link-custom">
                   Sign Up
                 </Nav.Link>
               </>
