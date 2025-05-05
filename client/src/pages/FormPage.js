@@ -57,6 +57,7 @@ function FormPage() {
     "F",
     "W",
     "N/A",
+    "IP"
   ];
 
   const handleSubmit = async (e) => {
