@@ -1,0 +1,39 @@
+/* styles/SignUpPage.css */
+
+.signup-page {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .signup-page h2 {
+    margin-bottom: 1.5rem;
+    font-family: 'Arial Black', Arial, sans-serif;
+  }
+  
+  .signup-page form {
+    text-align: left;
+  }
+  
+  .signup-page .form-label {
+    font-weight: bold;
+  }
+  
+  .signup-page .btn-primary {
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .signup-page .text-center a {
+    color: #0d6efd;
+    text-decoration: none;
+  }
+  
+  .signup-page .text-center a:hover {
+    text-decoration: underline;
+  }
+  

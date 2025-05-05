@@ -1,0 +1,93 @@
+/* styles/global.css */
+
+/* Reset basic elements */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+  line-height: 1.6;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 1.5rem;   /* consistent space below headings */
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-weight: normal; /* because Arial Black is inherently bold */
+}
+
+/* Buttons and inputs match body font */
+button, .btn, input, select, textarea {
+  font-family: Arial, sans-serif;
+  /* keep your padding, borders, etc. */
+}
+
+/* Paragraphs and text blocks */
+p {
+  margin-bottom: 1rem;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+  line-height: 1.6;
+}
+
+/* Sections and content blocks */
+section, .page-section, .form-section {
+  margin-bottom: 2rem;    /* vertical spacing between major sections */
+}
+
+/* Buttons */
+button, .btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+button:hover, .btn:hover {
+  opacity: 0.9;           /* light hover effect */
+}
+
+/* Forms */
+.form-group, .mb-3 {
+  margin-bottom: 1rem;    /* consistent form group spacing */
+}
+
+input, select, textarea {
+  padding: 0.5rem;
+  border-radius: 4px;
+  border: 1px solid #ced4da;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Centering helpers */
+.text-center {
+  text-align: center;
+}
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Cards and containers */
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
