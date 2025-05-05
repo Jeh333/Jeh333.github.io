@@ -3,8 +3,6 @@ import * as d3 from "d3";
 import axios from "axios";
 import { auth } from "../firebase";
 import majors from "../data/majors.json";
-import "../styles/global.css";
-import "../styles/VisualizationPage.css";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -16,11 +14,12 @@ function VisualizationPage() {
   const [histories, setHistories] = useState([]);
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
   const [viewMode, setViewMode] = useState("all");
-  const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("Semester 1");
   const [availableSemesters, setAvailableSemesters] = useState([]);
   const [loggedInFirebaseUid, setLoggedInFirebaseUid] = useState("");
   const [isDataReady, setIsDataReady] = useState(false);
   const [selectedMajor, setSelectedMajor] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState([]);
 
   // Helper function to compute a sortable rank for a semester code (like SP23)
   const getSemesterRank = (code) => {
@@ -42,7 +41,8 @@ function VisualizationPage() {
 
     // Build a set of unique semesters for this user
     userHistories.forEach((history) => {
-      const studentCourses = history.courses || [];
+    if (!history || !history.courses) return;
+    const studentCourses = history.courses;
 
       // Map semesters to labels like 'Semester 1', 'Semester 2', etc.
       const semesterSet = new Set();
@@ -52,20 +52,25 @@ function VisualizationPage() {
       );
 
       const semesterMap = new Map();
+      const reverseSemesterMap = new Map();
       sortedSemesters.forEach((code, idx) => {
-        semesterMap.set(code, `Semester ${idx + 1}`);
+        const label = `Semester ${idx + 1}`;
+        semesterMap.set(code, label);
+        reverseSemesterMap.set(label, code);
       });
+
 
       // Collect the course data, filtered by semester if specified
       studentCourses.forEach((course) => {
         if (!course.semester) return;
         const label = semesterMap.get(course.semester);
         if (!semester || label === semester) {
-          allCourseData.push({
-            programId: course.programId,
-            normalizedSemester: label,
-            grade: course.grade,
-          });
+        allCourseData.push({
+          programId: course.programId,
+          normalizedSemester: label,
+          rawSemesterCode: course.semester,
+          grade: course.grade,
+        });
         }
       });
     });
@@ -83,9 +88,20 @@ function VisualizationPage() {
 
       // If the semester node hasn't been added yet, add it to the nodes list
       if (!nodeSet.has(semesterNodeId)) {
-        nodes.push({ id: semesterNodeId, group: "semester" });
+        // Find the raw semester code from the first matching course
+        const firstCourse = allCourseData.find(
+          (c) => c.normalizedSemester === semesterNodeId
+        );
+        const rawCode = firstCourse ? firstCourse.rawSemesterCode : "Unknown";
+
+        nodes.push({
+          id: semesterNodeId,
+          group: "semester",
+          rawSemesterCode: rawCode,
+        });
         nodeSet.add(semesterNodeId);
       }
+
 
       // If the course node hasn't been added yet, add it to the nodes list
       if (!nodeSet.has(courseNodeId)) {
@@ -157,6 +173,35 @@ function VisualizationPage() {
       .join("circle")
       .attr("r", (d) => (d.group === "semester" ? 20 : 8))
       .attr("fill", (d) => (d.group === "semester" ? "#1f77b4" : "#ff7f0e"))
+      .on("mouseover", function (event, d) {
+        d3.select(this)
+          .transition()
+          .duration(150)
+          .attr("fill", d.group === "semester" ? "#3399ff" : "#ff9933")
+          .attr("r", d.group === "semester" ? 30 : 14);
+
+        container
+          .selectAll("text")
+          .filter((t) => t.id === d.id)
+          .transition()
+          .duration(150)
+          .attr("font-size", 16);
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this)
+          .transition()
+          .duration(150)
+          .attr("fill", d.group === "semester" ? "#1f77b4" : "#ff7f0e")
+          .attr("r", d.group === "semester" ? 20 : 8);
+
+        container
+          .selectAll("text")
+          .filter((t) => t.id === d.id)
+          .transition()
+          .duration(150)
+          .attr("font-size", 10);
+      })
+
       .on("click", async (event, d) => {
         if (d.group === "course") {
           const courseName = d.displayName;
@@ -184,10 +229,12 @@ function VisualizationPage() {
               );
             }
           }
-        } else {
-          alert(`Semester: ${d.id}`);
+        } else if (d.group === "semester") {
+          const rawSemester = d.rawSemesterCode || "Unknown";
+          alert(`Semester label: ${d.id}\nDatabase code: ${rawSemester}`);
         }
       })
+
       .call(
         d3
           .drag()
@@ -254,25 +301,32 @@ function VisualizationPage() {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (loggedInFirebaseUid && histories.length > 0) {
-      setIsDataReady(true);
+useEffect(() => {
+  if (loggedInFirebaseUid && histories.length > 0) {
+    setIsDataReady(true);
 
-      const semesterSet = new Set();
-      histories.forEach((history) => {
-        const studentCourses = history.courses || [];
-        studentCourses.forEach((c) => {
-          if (c.semester) semesterSet.add(c.semester);
-        });
+    let maxSemesters = 0;
+
+    histories.forEach((history) => {
+      const studentCourses = history.courses || [];
+      const userSemesterSet = new Set();
+      studentCourses.forEach((c) => {
+        if (c.semester) userSemesterSet.add(c.semester);
       });
+      if (userSemesterSet.size > maxSemesters) {
+        maxSemesters = userSemesterSet.size;
+      }
+    });
 
-      const semesterList = Array.from(semesterSet)
-        .sort((a, b) => getSemesterRank(a) - getSemesterRank(b))
-        .map((_, idx) => `Semester ${idx + 1}`);
+    const semesterList = Array.from(
+      { length: maxSemesters },
+      (_, idx) => `Semester ${idx + 1}`
+    );
 
-      setAvailableSemesters(semesterList);
-    }
-  }, [loggedInFirebaseUid, histories]);
+    setAvailableSemesters(semesterList);
+  }
+}, [loggedInFirebaseUid, histories]);
+
 
   const handleSemesterChange = (e) => {
     const semester = e.target.value;
@@ -280,50 +334,60 @@ function VisualizationPage() {
     redrawFilteredGraph(semester, selectedMajor);
   };
 
+const redrawFilteredGraph = (semester, major) => {
+  let filtered = histories;
+
+  // Only filter by major when in single user mode
+  if (viewMode === "single" && major) {
+    filtered = filtered.filter((h) => h.major === major);
+  }
+
+  if (!filtered || filtered.length === 0) {
+    console.warn(
+      "No matching histories found for the selected major/semester."
+    );
+    drawGraph([], semester);
+    return;
+  }
+
+  if (viewMode === "single" && currentUserIndex >= 0) {
+    drawGraph([filtered[currentUserIndex]], semester);
+  } else if (viewMode === "current" && loggedInFirebaseUid) {
+    const userHistory = histories.find(
+      (history) => history.firebaseUid === loggedInFirebaseUid
+    );
+    if (userHistory) {
+      drawGraph([userHistory], semester);
+    } else {
+      drawGraph([], semester);
+    }
+  } else if (viewMode === "all") {
+    drawGraph(histories, semester);
+  }
+};
+
+
   const handleMajorChange = (e) => {
     const major = e.target.value;
     setSelectedMajor(major);
     redrawFilteredGraph(selectedSemester, major);
   };
+const handleSingleUser = () => {
+  const filtered = selectedMajor
+    ? histories.filter((h) => h.major === selectedMajor)
+    : histories;
 
-  const redrawFilteredGraph = (semester, major) => {
-    let filtered = histories;
+  if (filtered.length === 0) return;
 
-    if (major) {
-      filtered = filtered.filter((h) => h.major === major);
-    }
+  setFilteredUsers(filtered); 
 
-    if (viewMode === "single" && filtered.length > 0 && currentUserIndex >= 0) {
-      drawGraph([filtered[currentUserIndex]], semester);
-    } else if (
-      viewMode === "current" &&
-      filtered.length > 0 &&
-      loggedInFirebaseUid
-    ) {
-      const userHistory = filtered.find(
-        (history) => history.firebaseUid === loggedInFirebaseUid
-      );
-      if (userHistory) {
-        drawGraph([userHistory], semester);
-      } else {
-        drawGraph([], semester);
-      }
-    } else if (viewMode === "all" && filtered.length > 0) {
-      drawGraph(filtered, semester);
-    }
-  };
+  const randomIndex = Math.floor(Math.random() * filtered.length);
+  setCurrentUserIndex(randomIndex);
+  setViewMode("single");
+  drawGraph([filtered[randomIndex]], selectedSemester);
+};
 
-  const handleSingleUser = () => {
-    const filtered = selectedMajor
-      ? histories.filter((h) => h.major === selectedMajor)
-      : histories;
 
-    if (filtered.length === 0) return;
-    const randomIndex = Math.floor(Math.random() * filtered.length);
-    setCurrentUserIndex(randomIndex);
-    setViewMode("single");
-    drawGraph([filtered[randomIndex]], selectedSemester);
-  };
 
   const handleCurrentUser = () => {
     if (!isDataReady) {
@@ -334,6 +398,7 @@ function VisualizationPage() {
     const filtered = selectedMajor
       ? histories.filter((h) => h.major === selectedMajor)
       : histories;
+
 
     const userHistory = filtered.find(
       (history) => history.firebaseUid === loggedInFirebaseUid
@@ -349,167 +414,159 @@ function VisualizationPage() {
     }
   };
 
-  const handleAllUsers = () => {
-    const filtered = selectedMajor
-      ? histories.filter((h) => h.major === selectedMajor)
-      : histories;
 
-    setViewMode("all");
-    drawGraph(filtered, selectedSemester);
-  };
+const handleNextUser = () => {
+  if (viewMode !== "single" || filteredUsers.length === 0) return;
 
-  const handleNextUser = () => {
-    const filtered = selectedMajor
-      ? histories.filter((h) => h.major === selectedMajor)
-      : histories;
+  const nextIndex = (currentUserIndex + 1) % filteredUsers.length;
+  setCurrentUserIndex(nextIndex);
+  drawGraph([filteredUsers[nextIndex]], selectedSemester);
+};
 
-    if (viewMode !== "single" || filtered.length === 0) return;
-    const nextIndex = (currentUserIndex + 1) % filtered.length;
-    setCurrentUserIndex(nextIndex);
-    drawGraph([filtered[nextIndex]], selectedSemester);
-  };
 
-  const handlePrevUser = () => {
-    const filtered = selectedMajor
-      ? histories.filter((h) => h.major === selectedMajor)
-      : histories;
 
-    if (viewMode !== "single" || filtered.length === 0) return;
-    const prevIndex =
-      (currentUserIndex - 1 + filtered.length) % filtered.length;
-    setCurrentUserIndex(prevIndex);
-    drawGraph([filtered[prevIndex]], selectedSemester);
-  };
+const handlePrevUser = () => {
+  if (viewMode !== "single" || filteredUsers.length === 0) return;
 
-  return (
-    <div>
-      <h2 style={{ textAlign: "center", marginTop: "1rem" }}>
-        Course Visualizer
-      </h2>
-      {(viewMode === "single" || viewMode === "current") && (
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "0.5rem",
-            fontSize: "0.9rem",
-            color: "#555",
-          }}
-        >
-          {(() => {
-            let majorToShow = "";
-            if (viewMode === "single" && histories[currentUserIndex]) {
-              majorToShow = histories[currentUserIndex].major || "Not set";
-            } else if (viewMode === "current") {
-              const currentUser = histories.find(
-                (h) => h.firebaseUid === loggedInFirebaseUid
-              );
-              majorToShow = currentUser?.major || "Not set";
-            }
-            return (
-              <span>
-                Showing data for major: <strong>{majorToShow}</strong>
-              </span>
+  const prevIndex =
+    (currentUserIndex - 1 + filteredUsers.length) % filteredUsers.length;
+  setCurrentUserIndex(prevIndex);
+  drawGraph([filteredUsers[prevIndex]], selectedSemester);
+};
+
+return (
+  <>
+    <div
+      style={{
+        textAlign: "center",
+        marginBottom: "0.5rem",
+        fontSize: "0.9rem",
+        color: "#555",
+        minHeight: "1.5rem", // reserve space even if empty
+      }}
+    >
+      {(viewMode === "single" || viewMode === "current") &&
+        (() => {
+          let majorToShow = "";
+          if (viewMode === "single" && filteredUsers[currentUserIndex]) {
+            majorToShow = filteredUsers[currentUserIndex].major || "Not set";
+          } else if (viewMode === "current") {
+            const currentUser = histories.find(
+              (h) => h.firebaseUid === loggedInFirebaseUid
             );
-          })()}
-        </div>
-      )}
+            majorToShow = currentUser?.major || "Not set";
+          }
+          return (
+            <span>
+              Showing data for major: <strong>{majorToShow}</strong>
+            </span>
+          );
+        })()}
+    </div>
 
-      <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+    {/* Dropdowns row */}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: "10px",
+        marginBottom: "1rem",
+      }}
+    >
+      <select
+        onChange={handleMajorChange}
+        value={selectedMajor}
+        style={{ width: "250px" }}
+      >
+        <option value="">Select Major</option>
+        {majors.map((m) => (
+          <option key={m.name} value={m.name}>
+            {m.name}
+          </option>
+        ))}
+      </select>
 
-        {/* Major Dropdown */}
-        <select
-          onChange={handleMajorChange}
-          value={selectedMajor}
-          style={{ marginBottom: "1rem", marginRight: "10px", width: "250px" }}
-        >
-          <option value="">All Majors</option>
-          {majors.map((m) => (
-            <option key={m.name} value={m.name}>
-              {m.name}
-            </option>
-          ))}
-        </select>
+      <select
+        onChange={handleSemesterChange}
+        value={selectedSemester}
+        style={{ width: "250px" }}
+      >
+        {availableSemesters.map((semester) => (
+          <option key={semester} value={semester}>
+            {semester}
+          </option>
+        ))}
+      </select>
+    </div>
 
-        {/* Semester Dropdown */}
-        <select
-          onChange={handleSemesterChange}
-          value={selectedSemester}
-          style={{ marginBottom: "1rem", marginRight: "10px", width: "250px"  }}
-        >
-          <option value="">All Semesters</option>
-          {availableSemesters.map((semester) => (
-            <option key={semester} value={semester}>
-              {semester}
-            </option>
-          ))}
-        </select>
+    {/* Buttons row */}
+    <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+      <button
+        onClick={handleSingleUser}
+        style={{
+          margin: "0 5px",
+          backgroundColor: viewMode === "single" ? "#F1B82D" : "#6c757d",
+          color: viewMode === "single" ? "black" : "white",
+          fontWeight: viewMode === "single" ? "bold" : "",
+          border: "2px solid black",
+        }}
+      >
+        Single User
+      </button>
 
-        {/* Control Buttons */}
-        <button
-          onClick={handleCurrentUser}
-          style={{
-            margin: "0 5px",
-            backgroundColor: viewMode === "current" ? "#F1B82D" : "#6c757d",
-            color: viewMode === "current" ? "black" : "white",
-            fontWeight: viewMode === "current" ? "bold" : "",
-            border: "2px solid black",
-          }}
-        >
-          Current User
-        </button>
-        
-        <button
-          onClick={handleAllUsers}
-          style={{
-            margin: "0 5px",
-            backgroundColor: viewMode === "all" ? "#F1B82D" : "#6c757d",
-            color: viewMode === "all" ? "black" : "white",
-            fontWeight: viewMode === "all" ? "bold" : "",
-            border: "2px solid black",
-          }}
-        >
-          All Users
-        </button>
+      <button
+        onClick={handleCurrentUser}
+        style={{
+          margin: "0 5px",
+          backgroundColor: viewMode === "current" ? "#F1B82D" : "#6c757d",
+          color: viewMode === "current" ? "black" : "white",
+          fontWeight: viewMode === "current" ? "bold" : "",
+          border: "2px solid black",
+        }}
+      >
+        Current User
+      </button>
 
-        <button
-          onClick={handleSingleUser}
-          style={{
-            margin: "0 5px",
-            backgroundColor: viewMode === "single" ? "#F1B82D" : "#6c757d",
-            color: viewMode === "single" ? "black" : "white",
-            fontWeight: viewMode === "single" ? "bold" : "",
-            border: "2px solid black",
-          }}
-        >
-          Single User
-        </button>
+      <button
+        onClick={handlePrevUser}
+        style={{ margin: "0 5px" }}
+        disabled={viewMode !== "single"}
+      >
+        &lt; Prev
+      </button>
+      <button
+        onClick={handleNextUser}
+        style={{ margin: "0 5px" }}
+        disabled={viewMode !== "single"}
+      >
+        Next &gt;
+      </button>
+    </div>
 
-        <button
-          onClick={handlePrevUser}
-          style={{ margin: "0 5px" }}
-          disabled={viewMode !== "single"}
-        >
-          &lt; Prev
-        </button>
-        <button
-          onClick={handleNextUser}
-          style={{ margin: "0 5px" }}
-          disabled={viewMode !== "single"}
-        >
-          Next &gt;
-        </button>
-      </div>
+    <div
+      style={{
+        width: "95vw", // 95% of the viewport width, leaves room for scrollbars/margins
+        height: "60vh", // slightly less tall if you want room for buttons/headers
+        margin: "0 auto", // centers it
+        display: "block",
+        backgroundColor: "#f8f9fa",
+        boxShadow: "inset 0 0 30px rgba(0,0,0,0.2)",
+        borderRadius: "8px",
+      }}
+    >
       <svg
         ref={svgRef}
         style={{
-          display: "block",
-          margin: "0 auto",
           width: "100%",
-          height: "100vh",
+          height: "100%",
         }}
       ></svg>
     </div>
-  );
+  </>
+);
+
+
 }
 
 export default VisualizationPage;
+
