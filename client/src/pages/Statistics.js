@@ -29,7 +29,7 @@ function Statistics() {
   const [statType, setStatType] = useState("distribution");
   const [selectedPrefixes, setSelectedPrefixes] = useState([]);
   const [showPrefixFilter, setShowPrefixFilter] = useState(false);
-  const [showTop10, setShowTop10] = useState(false);
+  const [courseLimit, setCourseLimit] = useState("");
   useEffect(() => {
     setAvailableMajors(majors.map((m) => m.name));
   }, []);
@@ -94,13 +94,20 @@ function Statistics() {
         <option value="grades">Grade Distribution by Course</option>
       </Form.Select>
 
-      <Form.Check
-        type="checkbox"
-        label="Filter by Course Prefix"
-        className="mb-2 text-start w-50 mx-auto"
-        checked={showPrefixFilter}
-        onChange={(e) => setShowPrefixFilter(e.target.checked)}
-      />
+      {statType === "distribution" && (
+        <Form.Group className="mb-3 d-flex align-items-center justify-content-center gap-2">
+          <Form.Label style={{ marginBottom: 0 }}>
+            Limit Number of Courses Shown
+          </Form.Label>
+          <Form.Control
+            type="number"
+            min="1"
+            style={{ maxWidth: "80px" }}
+            value={courseLimit}
+            onChange={(e) => setCourseLimit(e.target.value)}
+          />
+        </Form.Group>
+      )}
 
       <Form.Check
         type="checkbox"
@@ -160,10 +167,10 @@ function Statistics() {
               }
             );
 
-            if (showTop10) {
+            if (courseLimit) {
               filteredEntries = filteredEntries
                 .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
+                .slice(0, parseInt(courseLimit));
             }
 
             if (filteredEntries.length === 0) return null;
