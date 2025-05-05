@@ -88,10 +88,10 @@ function VisualizationPage() {
       // If the course node hasn't been added yet, add it to the nodes list
       if (!nodeSet.has(courseNodeId)) {
         nodes.push({
-          id: courseNodeId, // unique course node ID (with semester)
-          group: "course", // 'course' group for styling
-          displayName: programId, // course code to display (e.g., CMP_SC 1010)
-          grade: grade, // course grade (used for potential color coding)
+          id: courseNodeId, 
+          group: "course", 
+          displayName: programId, 
+          grade: grade, 
         });
         nodeSet.add(courseNodeId);
       }
@@ -413,6 +413,7 @@ function VisualizationPage() {
       )}
 
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+
         {/* Major Dropdown */}
         <select
           onChange={handleMajorChange}
@@ -420,13 +421,11 @@ function VisualizationPage() {
           style={{ marginBottom: "1rem", marginRight: "10px", width: "250px" }}
         >
           <option value="">All Majors</option>
-          {majors.map((m) =>
-            m.types.map((type) => (
-              <option key={`${m.name}-${type}`} value={m.name}>
-                {m.name} ({type})
-              </option>
-            ))
-          )}
+          {majors.map((m) => (
+            <option key={m.name} value={m.name}>
+              {m.name}
+            </option>
+          ))}
         </select>
 
         {/* Semester Dropdown */}

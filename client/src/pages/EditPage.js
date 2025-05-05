@@ -27,6 +27,7 @@ const EditPage = () => {
     "F",
     "W",
     "N/A",
+    "IP",
   ];
 
   useEffect(() => {
@@ -42,7 +43,12 @@ const EditPage = () => {
 
           if (!res.ok) throw new Error("Failed to load course history");
           const data = await res.json();
-          setCourses(data[0]?.courses || []);
+          const userHistory = data.find((h) => h.firebaseUid === user.uid);
+          if (userHistory) {
+            setCourses(userHistory.courses || []);
+          } else {
+            setCourses([]);
+          }
         });
 
         return () => unsubscribe();
@@ -120,12 +126,9 @@ const EditPage = () => {
           >
             {editingIndex === index ? (
               <>
-                <input
-                  value={course.programId}
-                  onChange={(e) =>
-                    handleChange(index, "programId", e.target.value)
-                  }
-                />
+                <div>
+                  <strong>Program ID:</strong> {course.programId}
+                </div>
                 <select
                   value={course.semester}
                   onChange={(e) =>
