@@ -7,6 +7,16 @@ const API_URL =
     ? process.env.REACT_APP_API_URL
     : process.env.REACT_APP_BACKEND_URL;
 
+const convertToCode = (fullTerm) => {
+  const [season, year] = fullTerm.split(" ");
+  const seasonMap = {
+    Spring: "SP",
+    Summer: "SS",
+    Fall: "FS",
+  };
+  return `${seasonMap[season] || season}${year.slice(-2)}`;
+};
+
 const EditPage = () => {
   const [courses, setCourses] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
@@ -71,6 +81,11 @@ const EditPage = () => {
       const idToken = await auth.currentUser.getIdToken();
       const updatedCourses = [...courses];
 
+      // Convert semester to short code before saving
+      updatedCourses[index].semester = convertToCode(
+        updatedCourses[index].semester
+      );
+
       const res = await fetch(`${API_URL}/submit-course-history`, {
         method: "POST",
         headers: {
@@ -130,11 +145,12 @@ const EditPage = () => {
                   <strong>Program ID:</strong> {course.programId}
                 </div>
                 <select
-                  value={course.semester}
+                  value={course.semester || ""}
                   onChange={(e) =>
                     handleChange(index, "semester", e.target.value)
                   }
                 >
+                  <option value="">Select Semester</option>
                   {termsList.map((term) => (
                     <option key={term} value={term}>
                       {term}
@@ -173,18 +189,33 @@ const EditPage = () => {
               }}
             >
               {editingIndex === index ? (
-                <button
-                  onClick={() => handleSave(index)}
-                  style={{
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    padding: "0.5rem",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Save
-                </button>
+                <>
+                  <button
+                    onClick={() => handleSave(index)}
+                    style={{
+                      backgroundColor: "#007bff",
+                      color: "#fff",
+                      border: "none",
+                      padding: "0.5rem",
+                      borderRadius: "5px",
+                      marginRight: "5px",
+                    }}
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => setEditingIndex(null)}
+                    style={{
+                      backgroundColor: "#6c757d",
+                      color: "#fff",
+                      border: "none",
+                      padding: "0.5rem",
+                      borderRadius: "5px",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={() => setEditingIndex(index)}

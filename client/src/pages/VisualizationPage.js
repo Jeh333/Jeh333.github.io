@@ -88,10 +88,10 @@ function VisualizationPage() {
       // If the course node hasn't been added yet, add it to the nodes list
       if (!nodeSet.has(courseNodeId)) {
         nodes.push({
-          id: courseNodeId, 
-          group: "course", 
-          displayName: programId, 
-          grade: grade, 
+          id: courseNodeId, // unique course node ID (with semester)
+          group: "course", // 'course' group for styling
+          displayName: programId, // course code to display (e.g., CMP_SC 1010)
+          grade: grade, // course grade (used for potential color coding)
         });
         nodeSet.add(courseNodeId);
       }
@@ -413,7 +413,6 @@ function VisualizationPage() {
       )}
 
       <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-
         {/* Major Dropdown */}
         <select
           onChange={handleMajorChange}
