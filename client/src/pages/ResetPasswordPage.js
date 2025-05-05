@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { auth }                from "../firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { Link } from "react-router-dom";
+import "../styles/global.css";
+import "../styles/ResetPasswordPage.css";
 
 export default function ResetPasswordPage() {
   const [email, setEmail]     = useState("");
@@ -30,7 +32,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="reset-page">
-      <h2 className="mb-4">Reset Password</h2>
+      <h2 className="mb-4 text-center">Reset Password</h2>
       {message && <div className="alert alert-success">{message}</div>}
       {error   && <div className="alert alert-danger">{error}</div>}
 
@@ -55,7 +57,7 @@ export default function ResetPasswordPage() {
       </form>
 
       <div className="text-center mt-3">
-        <Link to="/login">Back to Login</Link>
+        <Link to="/login" className="text-primary">Back to Login</Link>
       </div>
     </div>
   );
