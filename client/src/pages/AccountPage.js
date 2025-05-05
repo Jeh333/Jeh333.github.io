@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebase";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { onAuthStateChanged } from "firebase/auth"; // onAuthStateChanged from firebase SDK
+import { sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
 import axios from "axios";
+import "../styles/global.css";
+import "../styles/AccountPage.css";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -24,20 +25,17 @@ function AccountPage() {
         setMajor("");
       }
     });
-
-    return () => unsubscribe(); // Clean up listener on unmount
+    return () => unsubscribe();
   }, []);
 
   const fetchUserMajor = async (user) => {
     try {
       const idToken = await user.getIdToken();
-
       const res = await axios.get(`${API_URL}/get-major`, {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
       });
-
       if (res.data && res.data.major) {
         setMajor(res.data.major);
       } else {
@@ -60,27 +58,22 @@ function AccountPage() {
   };
 
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "2rem" }}>
+    <div className="account-page">
       <h2>My Account</h2>
 
-      <div style={{ marginBottom: "1rem" }}>
+      <div className="account-section">
         <strong>Email:</strong> {email || "Loading..."}
       </div>
 
-      <div style={{ marginBottom: "1rem" }}>
+      <div className="account-section">
         <strong>Major:</strong> {major || "Loading..."}
       </div>
 
-      <button
-        onClick={handleChangePassword}
-        style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
-      >
+      <button onClick={handleChangePassword} className="account-button">
         Change Password
       </button>
 
-      {message && (
-        <div style={{ marginTop: "1rem", color: "green" }}>{message}</div>
-      )}
+      {message && <div className="account-message">{message}</div>}
     </div>
   );
 }
