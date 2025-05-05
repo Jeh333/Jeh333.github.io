@@ -75,35 +75,48 @@ router.post(
         }
       }
 
-      if (courses.length === 0) {
+      // Deduplicate within the parsed PDF itself
+      const deduplicatedCoursesMap = new Map();
+      for (const course of courses) {
+        const key = `${course.programId}_${course.semester}`;
+        if (!deduplicatedCoursesMap.has(key)) {
+          deduplicatedCoursesMap.set(key, course);
+        }
+      }
+      const deduplicatedCourses = Array.from(deduplicatedCoursesMap.values());
+
+      if (deduplicatedCourses.length === 0) {
+        fs.unlinkSync(file.path);
         return res.status(400).json({ error: "No valid courses found in PDF" });
       }
 
       let courseHistory = await CourseHistory.findOne({ firebaseUid });
       if (courseHistory) {
         const existingKeys = new Set(
-          courseHistory.courses.map((c) => `${c.programId}_${c.semester}_${c.grade}`)
+          courseHistory.courses.map((c) => `${c.programId}_${c.semester}`)
         );
 
-        const uniqueNewCourses = courses.filter((newCourse) => {
-          const key = `${newCourse.programId}_${newCourse.semester}_${newCourse.grade}`;
+        const uniqueNewCourses = deduplicatedCourses.filter((newCourse) => {
+          const key = `${newCourse.programId}_${newCourse.semester}`;
           return !existingKeys.has(key);
         });
 
-        courseHistory.courses.push(...uniqueNewCourses);
-        await courseHistory.save();
+        if (uniqueNewCourses.length > 0) {
+          courseHistory.courses.push(...uniqueNewCourses);
+          await courseHistory.save();
+        }
       } else {
-        courseHistory = await CourseHistory.create({ firebaseUid, courses });
+        courseHistory = await CourseHistory.create({
+          firebaseUid,
+          courses: deduplicatedCourses,
+        });
       }
 
-
       fs.unlinkSync(file.path);
-      return res
-        .status(200)
-        .json({
-          message: "PDF parsed and course history saved",
-          courseCount: courses.length,
-        });
+      return res.status(200).json({
+        message: "PDF parsed and course history saved",
+        courseCount: deduplicatedCourses.length,
+      });
     } catch (err) {
       console.error("Upload error:", err);
       res.status(500).json({ error: "Error processing PDF upload" });
