@@ -4,6 +4,8 @@ import majors from "../data/majors.json";
 import coursePrefixes from "../data/coursePrefixes.json";
 import { auth } from "../firebase";
 import termsList from "../data/termsList";
+import "../styles/global.css";
+import "../styles/FormPage.css";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -17,16 +19,6 @@ function FormPage() {
     courseNumber: "",
     grade: "",
   });
-
-  const convertToCode = (fullTerm) => {
-    const [season, year] = fullTerm.split(" ");
-    const seasonMap = {
-      Spring: "SP",
-      Summer: "SS",
-      Fall: "FS",
-    };
-    return `${seasonMap[season] || season}${year.slice(-2)}`;
-  };
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [major, setMajor] = useState("");
@@ -57,8 +49,18 @@ function FormPage() {
     "F",
     "W",
     "N/A",
-    "IP"
+    "IP",
   ];
+
+  const convertToCode = (fullTerm) => {
+    const [season, year] = fullTerm.split(" ");
+    const seasonMap = {
+      Spring: "SP",
+      Summer: "SS",
+      Fall: "FS",
+    };
+    return `${seasonMap[season] || season}${year.slice(-2)}`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -185,7 +187,7 @@ function FormPage() {
 
   return (
     <Container className="mt-5">
-      <h1 className="text-center mb-4" style={{ color: "black" }}>
+      <h1 className="text-center mb-5 formpage-title">
         Submit Your Course History
       </h1>
 
@@ -205,11 +207,11 @@ function FormPage() {
           {[...new Set(majors.map((m) => m.name))].map((name) => (
             <option key={name} value={name}>
               {name}
-            </option>
+              </option>
           ))}
         </Form.Select>
       </Form.Group>
-      <Button variant="success" onClick={handleSetMajor}>
+      <Button variant="primary" onClick={handleSetMajor}>
         Save Major
       </Button>
       <hr className="my-5" />
