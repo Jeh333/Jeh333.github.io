@@ -201,13 +201,11 @@ function FormPage() {
           }}
         >
           <option value="">Select Your Major</option>
-          {majors.map((m) =>
-            m.types.map((type) => (
-              <option key={`${m.name}-${type}`} value={m.name}>
-                {m.name} ({type})
-              </option>
-            ))
-          )}
+          {[...new Set(majors.map((m) => m.name))].map((name) => (
+            <option key={name} value={name}>
+              {name}
+            </option>
+          ))}
         </Form.Select>
       </Form.Group>
       <Button variant="success" onClick={handleSetMajor}>
