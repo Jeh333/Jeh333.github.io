@@ -32,6 +32,7 @@ function Statistics() {
   const [selectedPrefixes, setSelectedPrefixes] = useState([]);
   const [showPrefixFilter, setShowPrefixFilter] = useState(false);
   const [showTop10, setShowTop10] = useState(false);
+  const [barColor, setBarColor] = useState("#36A2EB");
 
   useEffect(() => {
     setAvailableMajors(majors.map((m) => m.name));
@@ -62,6 +63,7 @@ function Statistics() {
       const text = await res.text();
       const data = JSON.parse(text);
       setSemesterData(data);
+      setBarColor(statType === "distribution" ? "#36A2EB" : "#FF6384");
     } catch (err) {
       console.error("Error fetching statistics:", err);
     }
@@ -175,7 +177,7 @@ function Statistics() {
                     data={{
                       labels,
                       datasets: [
-                        { data: values, backgroundColor: "#36A2EB" },
+                        { data: values, backgroundColor: barColor },
                       ],
                     }}
                     options={{
@@ -223,7 +225,7 @@ function Statistics() {
                       data={{
                         labels,
                         datasets: [
-                          { data: values, backgroundColor: "#FF6384" },
+                          { data: values, backgroundColor: barColor },
                         ],
                       }}
                       options={{
