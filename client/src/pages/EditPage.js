@@ -1,3 +1,4 @@
+//Page for editiung and deleting pages
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import termsList from "../data/termsList.json";
@@ -8,7 +9,7 @@ const API_URL =
   process.env.NODE_ENV === "production"
     ? process.env.REACT_APP_API_URL
     : process.env.REACT_APP_BACKEND_URL;
-
+//Convert ful term to code
 const convertToCode = (fullTerm) => {
   const [season, year] = fullTerm.split(" ");
   const seasonMap = {
@@ -41,7 +42,7 @@ const EditPage = () => {
     "N/A",
     "IP",
   ];
-
+  //load user course history
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -71,19 +72,19 @@ const EditPage = () => {
 
     fetchCourses();
   }, []);
-
+  //Handle field change
   const handleChange = (index, field, value) => {
     const updated = [...courses];
     updated[index][field] = value;
     setCourses(updated);
   };
-
+  //save updated course
   const handleSave = async (index) => {
     try {
       const idToken = await auth.currentUser.getIdToken();
       const updatedCourses = [...courses];
 
-      // Convert semester to short code before saving
+      // Convert semester to short code
       updatedCourses[index].semester = convertToCode(
         updatedCourses[index].semester
       );
@@ -103,7 +104,7 @@ const EditPage = () => {
       console.error("Save error:", err);
     }
   };
-
+  //delete course by id
   const handleDelete = async (id) => {
     try {
       const idToken = await auth.currentUser.getIdToken();
