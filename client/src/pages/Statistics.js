@@ -1,3 +1,4 @@
+//Page for displaying statistics based on major and grades
 import React, { useEffect, useState } from "react";
 import coursePrefixes from "../data/coursePrefixes.json";
 import {
@@ -17,6 +18,7 @@ import "../styles/Statistics.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+//Load course prefixes for limiting data selection
 const COURSE_PREFIXES = coursePrefixes;
 
 const API_URL =
@@ -34,10 +36,11 @@ function Statistics() {
   const [showTop10, setShowTop10] = useState(false);
   const [barColor, setBarColor] = useState("#36A2EB");
 
+  //Load saved majors
   useEffect(() => {
     setAvailableMajors(majors.map((m) => m.name));
   }, []);
-
+  //Loads previously selected major
   useEffect(() => {
     const savedMajor = localStorage.getItem("selectedMajor");
     if (savedMajor) {
@@ -45,6 +48,7 @@ function Statistics() {
     }
   }, []);
 
+  //Fetch statistics after button is pressed
   const handleSubmit = async () => {
     if (!major) return;
 
