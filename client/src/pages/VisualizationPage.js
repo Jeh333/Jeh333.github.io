@@ -20,6 +20,7 @@ function VisualizationPage() {
   const [isDataReady, setIsDataReady] = useState(false);
   const [selectedMajor, setSelectedMajor] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [showTop10, setShowTop10] = useState(false);
 
   // Helper function to compute a sortable rank for a semester code (like SP23)
   const getSemesterRank = (code) => {
@@ -36,13 +37,13 @@ function VisualizationPage() {
     return fullYear * 10 + seasonOrder;
   };
   // Main graph drawing function
-  const drawGraph = useCallback((userHistories, semester = "") => {
-    const allCourseData = [];
+  const drawGraph = useCallback((userHistories, semester = "", showTop10 = false) => {
+    let allCourseData = [];
 
     // Build a set of unique semesters for this user
     userHistories.forEach((history) => {
-    if (!history || !history.courses) return;
-    const studentCourses = history.courses;
+      if (!history || !history.courses) return;
+      const studentCourses = history.courses;
 
       // Map semesters to labels like 'Semester 1', 'Semester 2', etc.
       const semesterSet = new Set();
@@ -59,21 +60,71 @@ function VisualizationPage() {
         reverseSemesterMap.set(label, code);
       });
 
-
       // Collect the course data, filtered by semester if specified
       studentCourses.forEach((course) => {
         if (!course.semester) return;
         const label = semesterMap.get(course.semester);
         if (!semester || label === semester) {
-        allCourseData.push({
-          programId: course.programId,
-          normalizedSemester: label,
-          rawSemesterCode: course.semester,
-          grade: course.grade,
-        });
+          allCourseData.push({
+            programId: course.programId,
+            normalizedSemester: label,
+            rawSemesterCode: course.semester,
+            grade: course.grade,
+          });
         }
       });
     });
+
+    // If showTop10 is enabled, filter to top 10 courses per semester
+    if (showTop10) {
+      if (semester) {
+        // Top 10 in selected semester (existing logic)
+        const courseCounts = {};
+        allCourseData.forEach((course) => {
+          if (course.normalizedSemester === semester) {
+            courseCounts[course.programId] = (courseCounts[course.programId] || 0) + 1;
+          }
+        });
+        const topCourses = Object.entries(courseCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([id]) => id);
+        allCourseData = allCourseData.filter(
+          (course) => course.normalizedSemester !== semester || topCourses.includes(course.programId)
+        );
+      } else {
+        // Top 10 for each semester
+        // 1. Group courses by semester
+        const semesterToCourses = {};
+        allCourseData.forEach((course) => {
+          if (!semesterToCourses[course.normalizedSemester]) {
+            semesterToCourses[course.normalizedSemester] = [];
+          }
+          semesterToCourses[course.normalizedSemester].push(course);
+        });
+
+        // 2. For each semester, find top 10 courses
+        const semesterToTopCourses = {};
+        Object.entries(semesterToCourses).forEach(([sem, courses]) => {
+          const courseCounts = {};
+          courses.forEach((course) => {
+            courseCounts[course.programId] = (courseCounts[course.programId] || 0) + 1;
+          });
+          const topCourses = Object.entries(courseCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([id]) => id);
+          semesterToTopCourses[sem] = new Set(topCourses);
+        });
+
+        // 3. Filter allCourseData to only include top 10 for each semester
+        allCourseData = allCourseData.filter(
+          (course) =>
+            semesterToTopCourses[course.normalizedSemester] &&
+            semesterToTopCourses[course.normalizedSemester].has(course.programId)
+        );
+      }
+    }
 
     const nodes = [];
     const links = [];
@@ -331,14 +382,14 @@ useEffect(() => {
   const handleSemesterChange = (e) => {
     const semester = e.target.value;
     setSelectedSemester(semester);
-    redrawFilteredGraph(semester, selectedMajor);
+    redrawFilteredGraph(semester, selectedMajor, showTop10);
   };
 
-const redrawFilteredGraph = (semester, major) => {
+const redrawFilteredGraph = (semester, major, showTop10Override = showTop10) => {
   let filtered = histories;
 
   // Only filter by major when in single user mode
-  if (viewMode === "single" && major) {
+  if ((viewMode === "single" || viewMode === "all") && major) {
     filtered = filtered.filter((h) => h.major === major);
   }
 
@@ -346,23 +397,23 @@ const redrawFilteredGraph = (semester, major) => {
     console.warn(
       "No matching histories found for the selected major/semester."
     );
-    drawGraph([], semester);
+    drawGraph([], semester, showTop10Override);
     return;
   }
 
   if (viewMode === "single" && currentUserIndex >= 0) {
-    drawGraph([filtered[currentUserIndex]], semester);
+    drawGraph([filtered[currentUserIndex]], semester, showTop10Override);
   } else if (viewMode === "current" && loggedInFirebaseUid) {
     const userHistory = histories.find(
       (history) => history.firebaseUid === loggedInFirebaseUid
     );
     if (userHistory) {
-      drawGraph([userHistory], semester);
+      drawGraph([userHistory], semester, showTop10Override);
     } else {
-      drawGraph([], semester);
+      drawGraph([], semester, showTop10Override);
     }
   } else if (viewMode === "all") {
-    drawGraph(histories, semester);
+    drawGraph(filtered, semester, showTop10Override);
   }
 };
 
@@ -370,7 +421,7 @@ const redrawFilteredGraph = (semester, major) => {
   const handleMajorChange = (e) => {
     const major = e.target.value;
     setSelectedMajor(major);
-    redrawFilteredGraph(selectedSemester, major);
+    redrawFilteredGraph(selectedSemester, major, showTop10);
   };
 const handleSingleUser = () => {
   const filtered = selectedMajor
@@ -384,7 +435,7 @@ const handleSingleUser = () => {
   const randomIndex = Math.floor(Math.random() * filtered.length);
   setCurrentUserIndex(randomIndex);
   setViewMode("single");
-  drawGraph([filtered[randomIndex]], selectedSemester);
+  drawGraph([filtered[randomIndex]], selectedSemester, showTop10);
 };
 
 
@@ -407,7 +458,7 @@ const handleSingleUser = () => {
     if (userHistory) {
       setViewMode("current");
       setCurrentUserIndex(-1);
-      drawGraph([userHistory], selectedSemester);
+      drawGraph([userHistory], selectedSemester, showTop10);
     } else {
       console.warn("No course history found for your account.");
       alert("No course history found for your account.");
@@ -420,7 +471,7 @@ const handleNextUser = () => {
 
   const nextIndex = (currentUserIndex + 1) % filteredUsers.length;
   setCurrentUserIndex(nextIndex);
-  drawGraph([filteredUsers[nextIndex]], selectedSemester);
+  drawGraph([filteredUsers[nextIndex]], selectedSemester, showTop10);
 };
 
 
@@ -431,7 +482,13 @@ const handlePrevUser = () => {
   const prevIndex =
     (currentUserIndex - 1 + filteredUsers.length) % filteredUsers.length;
   setCurrentUserIndex(prevIndex);
-  drawGraph([filteredUsers[prevIndex]], selectedSemester);
+  drawGraph([filteredUsers[prevIndex]], selectedSemester, showTop10);
+};
+
+const handleAllUsers = () => {
+  setViewMode("all");
+  setCurrentUserIndex(-1);
+  redrawFilteredGraph(selectedSemester, selectedMajor, showTop10);
 };
 
 return (
@@ -496,6 +553,7 @@ return (
             {semester}
           </option>
         ))}
+        <option value="">All Semesters</option>
       </select>
     </div>
 
@@ -511,7 +569,7 @@ return (
           border: "2px solid black",
         }}
       >
-        Single User
+        Random User
       </button>
 
       <button
@@ -525,6 +583,23 @@ return (
         }}
       >
         Current User
+      </button>
+
+      <button
+        onClick={handleAllUsers}
+        style={{
+          margin: "0 5px",
+          backgroundColor: viewMode === "all" ? "#F1B82D" : "#6c757d",
+          color: viewMode === "all" ? "black" : "white",
+          fontWeight: viewMode === "all" ? "bold" : "",
+          border: "2px solid black",
+          opacity: selectedMajor ? 1 : 0.5,
+          cursor: selectedMajor ? "pointer" : "not-allowed",
+        }}
+        disabled={!selectedMajor}
+        title={!selectedMajor ? "Please select a major to use All Users view" : undefined}
+      >
+        All Users
       </button>
 
       <button
@@ -552,8 +627,69 @@ return (
         backgroundColor: "#f8f9fa",
         boxShadow: "inset 0 0 30px rgba(0,0,0,0.2)",
         borderRadius: "8px",
+        position: "relative", // <-- add for absolute positioning inside
       }}
     >
+      {/* Show message if no user data to display */}
+      {isDataReady && (
+        (() => {
+          let filtered = histories;
+          if ((viewMode === "single" || viewMode === "all") && selectedMajor) {
+            filtered = filtered.filter((h) => h.major === selectedMajor);
+          }
+          if (viewMode === "single" && filteredUsers.length > 0) {
+            filtered = filteredUsers;
+          }
+          if (
+            !filtered ||
+            filtered.length === 0 ||
+            (viewMode === "single" && filteredUsers.length === 0)
+          ) {
+            return (
+              <div style={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                color: "#888",
+                fontSize: "1.5rem",
+                zIndex: 10,
+                textAlign: "center",
+              }}>
+                No user data to display
+              </div>
+            );
+          }
+          return null;
+        })()
+      )}
+      {/* Top 10 toggle in top left */}
+      <div style={{ position: "absolute", top: 10, left: 10, zIndex: 2 }}>
+        <button
+          onClick={() => {
+            setShowTop10((prev) => {
+              const newVal = !prev;
+              redrawFilteredGraph(selectedSemester, selectedMajor, newVal);
+              return newVal;
+            });
+          }}
+          style={{
+            backgroundColor: showTop10 ? '#F1B82D' : '#111',
+            color: showTop10 ? 'black' : '#F1B82D',
+            border: '2px solid #F1B82D',
+            borderRadius: '6px',
+            fontWeight: 'bold',
+            fontSize: '1rem',
+            padding: '6px 18px',
+            cursor: 'pointer',
+            boxShadow: showTop10 ? '0 0 10px #F1B82D' : '0 2px 8px rgba(0,0,0,0.07)',
+            transition: 'background 0.2s, color 0.2s, box-shadow 0.2s',
+          }}
+          title={showTop10 ? 'Showing only the top 10 most common courses in the selected semester.' : 'Click to show only the top 10 most common courses in the selected semester.'}
+        >
+          Top 10 Courses {showTop10 ? '(ON)' : '(OFF)'}
+        </button>
+      </div>
       <svg
         ref={svgRef}
         style={{
