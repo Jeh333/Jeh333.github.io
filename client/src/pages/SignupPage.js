@@ -1,3 +1,4 @@
+//Page for user creation
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
@@ -19,12 +20,12 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  //Handles users changing input fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
+  //Activated when user hits submit
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoading(true);
@@ -38,7 +39,7 @@ function SignupPage() {
       setLoading(false);
       return;
     }
-
+    //Make sure passwords match
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       setLoading(false);
@@ -52,7 +53,7 @@ function SignupPage() {
         password
       );
       const firebaseUser = userCredential.user;
-
+      //Send email verification
       await sendEmailVerification(firebaseUser);
       alert(
         "A verification email has been sent. Please verify before logging in."
