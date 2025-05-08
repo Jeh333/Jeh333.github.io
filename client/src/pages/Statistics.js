@@ -15,6 +15,7 @@ import majors from "../data/majors.json";
 import { auth } from "../firebase";
 import "../styles/global.css";
 import "../styles/Statistics.css";
+import grades from "../data/grades.json";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -79,7 +80,10 @@ function Statistics() {
   };
 
   return (
-    <div className="container mt-5 text-center" style={{ position: "relative" }}>
+    <div
+      className="container mt-5 text-center"
+      style={{ position: "relative" }}
+    >
       <h1>Statistics by Major</h1>
 
       {/* Help Button */}
@@ -134,14 +138,24 @@ function Statistics() {
             ×
           </button>
           <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
-          <p style={{ marginBottom: 12, textAlign: "center", background: "white", }}>
-            The Statistics page allows you to explore major-specific course or grade data.
+          <p
+            style={{
+              marginBottom: 12,
+              textAlign: "center",
+              background: "white",
+            }}
+          >
+            The Statistics page allows you to explore major-specific course or
+            grade data.
           </p>
           <ul style={{ paddingLeft: "20px", marginBottom: 0 }}>
             <li>Select a major from the dropdown.</li>
             <li>Choose between Course Distribution or Grade Distribution.</li>
             <li>Optionally filter results by course prefix.</li>
-            <li>Toggle "Show Only Top 10" to limit data to the 10 most common results.</li>
+            <li>
+              Toggle "Show Only Top 10" to limit data to the 10 most common
+              results.
+            </li>
             <li>Click Submit to generate the chart.</li>
           </ul>
         </div>
@@ -196,43 +210,48 @@ function Statistics() {
       {showPrefixFilter && (
         <Form.Group className="mb-3 text-start w-50 mx-auto">
           <Form.Label>Filter by Course Prefix</Form.Label>
-          <div className="prefix-filter-box" style={{
-            backgroundColor: "white",
-            border: "2px solid black",
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            padding: "24px 20px 20px 20px",
-            maxWidth: "450px",
-            margin: "0 auto 16px auto",
-            marginTop: "8px",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "stretch",
-          }}>
+          <div
+            className="prefix-filter-box"
+            style={{
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              padding: "24px 20px 20px 20px",
+              maxWidth: "450px",
+              margin: "0 auto 16px auto",
+              marginTop: "8px",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
+            }}
+          >
             <input
               type="text"
               placeholder="Search prefixes..."
               value={prefixSearch}
-              onChange={e => setPrefixSearch(e.target.value)}
+              onChange={(e) => setPrefixSearch(e.target.value)}
               style={{
                 width: "100%",
                 marginBottom: 12,
                 padding: "6px 10px",
                 borderRadius: 4,
                 border: "1px solid #ccc",
-                fontSize: "1rem"
+                fontSize: "1rem",
               }}
             />
-            <div style={{
-              maxHeight: "220px",
-              overflowY: "auto",
-              border: "1px solid #eee",
-              borderRadius: 4,
-              padding: 4,
-              background: "#fafbfc",
-              flex: 1,
-            }}>
-              {COURSE_PREFIXES.filter(prefix =>
+            <div
+              style={{
+                maxHeight: "220px",
+                overflowY: "auto",
+                border: "1px solid #eee",
+                borderRadius: 4,
+                padding: 4,
+                background: "#fafbfc",
+                flex: 1,
+              }}
+            >
+              {COURSE_PREFIXES.filter((prefix) =>
                 prefix.toLowerCase().includes(prefixSearch.toLowerCase())
               ).map((prefix) => (
                 <Form.Check
@@ -248,10 +267,12 @@ function Statistics() {
                   }}
                 />
               ))}
-              {COURSE_PREFIXES.filter(prefix =>
+              {COURSE_PREFIXES.filter((prefix) =>
                 prefix.toLowerCase().includes(prefixSearch.toLowerCase())
               ).length === 0 && (
-                <div style={{ color: "#888", fontSize: "0.95rem", padding: 8 }}>No prefixes found.</div>
+                <div style={{ color: "#888", fontSize: "0.95rem", padding: 8 }}>
+                  No prefixes found.
+                </div>
               )}
             </div>
           </div>
@@ -313,7 +334,10 @@ function Statistics() {
                       scales: {
                         x: { title: { display: true, text: "Course" } },
                         y: {
-                          title: { display: true, text: "Percentage of Students" },
+                          title: {
+                            display: true,
+                            text: "Percentage of Students",
+                          },
                           beginAtZero: true,
                           max: 100,
                         },
@@ -338,8 +362,8 @@ function Statistics() {
               );
             })
             .map(([courseId, gradeCounts]) => {
-              const labels = Object.keys(gradeCounts);
-              const values = Object.values(gradeCounts);
+              const labels = grades.filter((g) => g in gradeCounts);
+              const values = labels.map((g) => gradeCounts[g]);
 
               return (
                 <div key={courseId} className="mb-5">
@@ -356,7 +380,10 @@ function Statistics() {
                         scales: {
                           x: { title: { display: true, text: "Grade" } },
                           y: {
-                            title: { display: true, text: "Percentage of Students" },
+                            title: {
+                              display: true,
+                              text: "Percentage of Students",
+                            },
                             beginAtZero: true,
                             max: 100,
                           },
