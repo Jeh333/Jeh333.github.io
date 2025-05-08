@@ -22,13 +22,27 @@ const convertToCode = (fullTerm) => {
   return `${seasonMap[season] || season}${year.slice(-2)}`;
 };
 
+// Helper to rank semesters chronologically
+const getSemesterRank = (code) => {
+  if (!code) return 0;
+  const season = code.slice(0, 2);
+  const year = parseInt(code.slice(2), 10);
+  const fullYear = year >= 50 ? 1900 + year : 2000 + year;
+  let seasonOrder = 0;
+  if (season === "SP") seasonOrder = 1;
+  else if (season === "SS") seasonOrder = 2;
+  else if (season === "FS") seasonOrder = 3;
+  else seasonOrder = 0;
+  return fullYear * 10 + seasonOrder;
+};
+
 const EditPage = () => {
   const [courses, setCourses] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
   const [sortSemesterAsc, setSortSemesterAsc] = useState(true);
   const [sortPrefixAsc, setSortPrefixAsc] = useState(true);
-
-
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
 
   //load user course history
   useEffect(() => {
@@ -119,16 +133,19 @@ const handleSave = async (index) => {
 
       if (!res.ok) throw new Error("Delete failed");
       setCourses((prev) => prev.filter((c) => c._id !== id));
+      setShowDeleteConfirm(false);
+      setCourseToDelete(null);
     } catch (err) {
       console.error("Delete error:", err);
+      alert("Failed to delete course. Please try again.");
     }
   };
 
   const handleSortBySemester = () => {
     const sorted = [...courses].sort((a, b) => {
-      const semA = a.semester || "";
-      const semB = b.semester || "";
-      return sortSemesterAsc ? semA.localeCompare(semB) : semB.localeCompare(semA);
+      const rankA = getSemesterRank(a.semester);
+      const rankB = getSemesterRank(b.semester);
+      return sortSemesterAsc ? rankA - rankB : rankB - rankA;
     });
     setCourses(sorted);
     setSortSemesterAsc(!sortSemesterAsc);
@@ -189,7 +206,7 @@ const handleSave = async (index) => {
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
         {courses.map((course, index) => (
           <div
-            key={course._id || index}
+            key={`${course._id}_${course.programId}_${course.semester}_${index}`}
             style={{
               borderRadius: "12px",
               boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
@@ -257,10 +274,6 @@ const handleSave = async (index) => {
                     style={{
                       backgroundColor: "#007bff",
                       color: "#fff",
-                      border: "none",
-                      padding: "0.5rem",
-                      borderRadius: "5px",
-                      marginRight: "5px",
                     }}
                   >
                     Save
@@ -270,44 +283,126 @@ const handleSave = async (index) => {
                     style={{
                       backgroundColor: "#6c757d",
                       color: "#fff",
-                      border: "none",
-                      padding: "0.5rem",
-                      borderRadius: "5px",
                     }}
                   >
                     Cancel
                   </button>
                 </>
               ) : (
-                <button
-                  onClick={() => setEditingIndex(index)}
-                  style={{
-                    backgroundColor: "#007bff",
-                    color: "#fff",
-                    border: "none",
-                    padding: "0.5rem",
-                    borderRadius: "5px",
-                  }}
-                >
-                  Edit
-                </button>
+                <>
+                  <button
+                    onClick={() => setEditingIndex(index)}
+                    style={{
+                      backgroundColor: "#007bff",
+                      color: "#fff",
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCourseToDelete(course);
+                      setShowDeleteConfirm(true);
+                    }}
+                    style={{
+                      backgroundColor: "#dc3545",
+                      color: "#fff",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </>
               )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Delete Confirmation Popup */}
+      {showDeleteConfirm && courseToDelete && (
+        <>
+          {/* Dark Overlay */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 998,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius: "8px",
+              padding: "20px",
+              maxWidth: "400px",
+              zIndex: 999,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            }}
+          >
+            <button
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                setCourseToDelete(null);
+              }}
+              style={{
+                position: "absolute",
+                top: "5px",
+                right: "8px",
+                background: "white",
+                border: "none",
+                fontSize: "1.2rem",
+                cursor: "pointer",
+              }}
+            >
+              ×
+            </button>
+            <h3 style={{ marginTop: 0, textAlign: "center" }}>Confirm Delete</h3>
+            <p style={{ marginBottom: "1rem", textAlign: "center" }}>
+              Are you sure you want to delete {courseToDelete.programId} from {courseToDelete.semester}?
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "1rem" }}>
               <button
-                onClick={() => handleDelete(course._id)}
+                onClick={() => {
+                  setShowDeleteConfirm(false);
+                  setCourseToDelete(null);
+                }}
+                style={{
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(courseToDelete._id)}
                 style={{
                   backgroundColor: "#dc3545",
-                  color: "#fff",
+                  color: "white",
                   border: "none",
-                  padding: "0.5rem",
-                  borderRadius: "5px",
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
                 }}
               >
                 Delete
               </button>
             </div>
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   );
 };

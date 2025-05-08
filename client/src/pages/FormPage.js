@@ -8,6 +8,7 @@ import termsList from "../data/termsList";
 import "../styles/global.css";
 import "../styles/FormPage.css";
 import grades from "../data/grades.json"
+import Spinner from "react-bootstrap/Spinner";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -24,6 +25,15 @@ function FormPage() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [major, setMajor] = useState("");
+  const [majorSaved, setMajorSaved] = useState(false);
+  const [showUploadPopup, setShowUploadPopup] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadCount, setUploadCount] = useState(null);
+  const [uploadError, setUploadError] = useState("");
+  const [showCoursePopup, setShowCoursePopup] = useState(false);
+  const [courseSubmitting, setCourseSubmitting] = useState(false);
+  const [courseSubmitSuccess, setCourseSubmitSuccess] = useState(false);
+  const [courseSubmitError, setCourseSubmitError] = useState("");
   
   //Load major from local storage
   useEffect(() => {
@@ -48,6 +58,20 @@ function FormPage() {
   //Submission for manual courses
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation: all fields required
+    if (!formData.term || !formData.subject || !formData.courseNumber || !formData.grade) {
+      setShowCoursePopup(true);
+      setCourseSubmitting(false);
+      setCourseSubmitSuccess(false);
+      setCourseSubmitError("Please fill out all fields before submitting.");
+      return;
+    }
+
+    setShowCoursePopup(true);
+    setCourseSubmitting(true);
+    setCourseSubmitSuccess(false);
+    setCourseSubmitError("");
 
     const newCourse = {
       programId: `${formData.subject} ${formData.courseNumber}`,
@@ -77,7 +101,8 @@ function FormPage() {
       );
 
       if (alreadyExists) {
-        alert("You’ve already added this course for that semester.");
+        setCourseSubmitting(false);
+        setCourseSubmitError("You've already added this course for that semester.");
         return;
       }
       //Submit new course entry
@@ -91,15 +116,15 @@ function FormPage() {
       });
 
       const data = await response.json();
+      setCourseSubmitting(false);
       if (response.ok) {
-        alert("Course successfully submitted!");
+        setCourseSubmitSuccess(true);
       } else {
-        console.error("Failed response:", data);
-        alert("Failed to submit course: " + (data.error || "Unknown error"));
+        setCourseSubmitError(data.error || "Failed to submit course.");
       }
     } catch (error) {
-      console.error("Submit error:", error);
-      alert("An error occurred while submitting the course.");
+      setCourseSubmitting(false);
+      setCourseSubmitError("An error occurred while submitting the course.");
     }
   };
   //Handle pdf file selection
@@ -111,6 +136,11 @@ function FormPage() {
       alert("Please select a file.");
       return;
     }
+
+    setShowUploadPopup(true);
+    setUploading(true);
+    setUploadCount(null);
+    setUploadError("");
 
     try {
       const idToken = await auth.currentUser.getIdToken();
@@ -124,15 +154,15 @@ function FormPage() {
       });
 
       const data = await response.json();
+      setUploading(false);
       if (response.ok) {
-        alert("Upload successful! Parsed courses: " + data.courseCount);
+        setUploadCount(data.courseCount || 0);
       } else {
-        console.error("Upload failed:", data);
-        alert("Upload failed: " + (data.error || "Unknown error"));
+        setUploadError(data.error || "Unknown error");
       }
     } catch (error) {
-      console.error("Network error:", error);
-      alert("Could not connect to server.");
+      setUploading(false);
+      setUploadError("Could not connect to server.");
     }
   };
   //Update form input
@@ -158,7 +188,7 @@ function FormPage() {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Major set successfully!");
+        setMajorSaved(true);
       } else {
         console.error("Failed to set major:", data);
         alert("Failed to set major: " + (data.error || "Unknown error"));
@@ -184,6 +214,7 @@ function FormPage() {
           value={major}
           onChange={(e) => {
             setMajor(e.target.value);
+            setMajorSaved(false);
             localStorage.setItem("selectedMajor", e.target.value);
           }}
         >
@@ -195,8 +226,13 @@ function FormPage() {
           ))}
         </Form.Select>
       </Form.Group>
-      <Button variant="primary" onClick={handleSetMajor}>
-        Save Major
+      <Button
+        variant={majorSaved ? "success" : "primary"}
+        onClick={handleSetMajor}
+        disabled={!major.trim()}
+        style={majorSaved ? { backgroundColor: "#28a745", borderColor: "#28a745" } : {}}
+      >
+        {majorSaved ? "Major Saved!" : "Save Major"}
       </Button>
       <hr className="my-5" />
 
@@ -220,6 +256,95 @@ function FormPage() {
           </Button>
         </Form>
       </div>
+
+      {/* Upload Progress/Result Popup */}
+      {showUploadPopup && (
+        <>
+          {/* Dark Overlay */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 998,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius: "8px",
+              padding: "36px 48px 36px 48px",
+              maxWidth: "600px",
+              minWidth: "400px",
+              zIndex: 999,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              textAlign: "center",
+              wordBreak: "break-word",
+              whiteSpace: "pre-line",
+            }}
+          >
+            <button
+              onClick={() => {
+                if (!uploading) setShowUploadPopup(false);
+              }}
+              style={{
+                position: "absolute",
+                top: "5px",
+                right: "8px",
+                background: "white",
+                border: "none",
+                fontSize: "1.2rem",
+                cursor: uploading ? "not-allowed" : "pointer",
+                color: uploading ? "#ccc" : "#000",
+              }}
+              disabled={uploading}
+            >
+              ×
+            </button>
+            <h3 style={{ marginTop: 0, marginBottom: 16 }}>PDF Upload</h3>
+            {uploading ? (
+              <>
+                <Spinner animation="border" role="status" style={{ marginBottom: 12 }} />
+                <div style={{ fontSize: "1.1rem", marginTop: 8 }}>
+                  Uploading and parsing your courses...
+                </div>
+              </>
+            ) : uploadError ? (
+              <>
+                <div style={{ color: "#dc3545", marginBottom: 12 }}>
+                  Error: {uploadError}
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowUploadPopup(false)}
+                >
+                  Close
+                </Button>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: "1.2rem", margin: "16px 0" }}>
+                  {uploadCount} classes uploaded!
+                </div>
+                <Button
+                  variant="success"
+                  onClick={() => setShowUploadPopup(false)}
+                >
+                  OK
+                </Button>
+              </>
+            )}
+          </div>
+        </>
+      )}
 
       <hr className="my-5" />
 
@@ -316,6 +441,95 @@ function FormPage() {
           </Col>
         </Row>
       </Form>
+
+      {/* Course Submission Popup */}
+      {showCoursePopup && (
+        <>
+          {/* Dark Overlay */}
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 998,
+            }}
+          />
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius: "8px",
+              padding: "36px 48px 36px 48px",
+              maxWidth: "600px",
+              minWidth: "400px",
+              zIndex: 999,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              textAlign: "center",
+              wordBreak: "break-word",
+              whiteSpace: "pre-line",
+            }}
+          >
+            <button
+              onClick={() => {
+                if (!courseSubmitting) setShowCoursePopup(false);
+              }}
+              style={{
+                position: "absolute",
+                top: "5px",
+                right: "8px",
+                background: "white",
+                border: "none",
+                fontSize: "1.2rem",
+                cursor: courseSubmitting ? "not-allowed" : "pointer",
+                color: courseSubmitting ? "#ccc" : "#000",
+              }}
+              disabled={courseSubmitting}
+            >
+              ×
+            </button>
+            <h3 style={{ marginTop: 0, marginBottom: 16 }}>Course Submission</h3>
+            {courseSubmitting ? (
+              <>
+                <Spinner animation="border" role="status" style={{ marginBottom: 12 }} />
+                <div style={{ fontSize: "1.1rem", marginTop: 8 }}>
+                  Submitting course…
+                </div>
+              </>
+            ) : courseSubmitError ? (
+              <>
+                <div style={{ color: "#dc3545", marginBottom: 12 }}>
+                  {courseSubmitError}
+                </div>
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowCoursePopup(false)}
+                >
+                  Close
+                </Button>
+              </>
+            ) : courseSubmitSuccess ? (
+              <>
+                <div style={{ fontSize: "1.2rem", margin: "16px 0" }}>
+                  Course successfully submitted!
+                </div>
+                <Button
+                  variant="success"
+                  onClick={() => setShowCoursePopup(false)}
+                >
+                  OK
+                </Button>
+              </>
+            ) : null}
+          </div>
+        </>
+      )}
     </Container>
   );
 }
