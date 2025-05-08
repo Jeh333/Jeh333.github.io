@@ -444,7 +444,27 @@ const redrawFilteredGraph = (semester, major, showTop10Override = showTop10) => 
   const handleMajorChange = (e) => {
     const major = e.target.value;
     setSelectedMajor(major);
+    setViewMode("all"); // Reset to all users when major changes
     redrawFilteredGraph(selectedSemester, major, showTop10);
+
+    // After updating, check if there is user data for the selected major
+    setTimeout(() => {
+      let filtered = histories;
+      if (major) {
+        filtered = histories.filter((h) => h.major === major);
+      }
+      if (!filtered || filtered.length === 0) {
+        // Clear the SVG graph
+        if (svgRef.current) {
+          while (svgRef.current.firstChild) {
+            svgRef.current.removeChild(svgRef.current.firstChild);
+          }
+        }
+        // Close any open course modals
+        setShowCourseModal(false);
+        setCourseModalInfo(null);
+      }
+    }, 0);
   };
 const handleSingleUser = () => {
   const filtered = selectedMajor
@@ -469,15 +489,10 @@ const handleSingleUser = () => {
       return;
     }
 
-    const filtered = selectedMajor
-      ? histories.filter((h) => h.major === selectedMajor)
-      : histories;
-
-
-    const userHistory = filtered.find(
+    setSelectedMajor(""); // Reset major dropdown
+    const userHistory = histories.find(
       (history) => history.firebaseUid === loggedInFirebaseUid
     );
-
     if (userHistory) {
       setViewMode("current");
       setCurrentUserIndex(-1);
@@ -659,8 +674,8 @@ return (
         position: "relative", // <-- add for absolute positioning inside
       }}
     >
-      {/* Show message if no major is selected and there are no nodes in the visualizer */}
-      {(!selectedMajor && (!svgRef.current || svgRef.current.childNodes.length === 0)) && (
+      {/* Show message if no major is selected and not in current user mode */}
+      {(!selectedMajor && viewMode !== "current") && (
         <div style={{
           position: "absolute",
           top: "50%",
@@ -683,6 +698,10 @@ return (
           }
           if (viewMode === "single" && filteredUsers.length > 0) {
             filtered = filteredUsers;
+          }
+          // If no major is selected and not in current user mode, don't show anything else
+          if (!selectedMajor && viewMode !== "current") {
+            return null;
           }
           if (
             !filtered ||
