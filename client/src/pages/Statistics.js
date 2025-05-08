@@ -35,11 +35,14 @@ function Statistics() {
   const [showPrefixFilter, setShowPrefixFilter] = useState(false);
   const [showTop10, setShowTop10] = useState(false);
   const [barColor, setBarColor] = useState("#36A2EB");
+  const [noData, setNoData] = useState(false);
+  const [showHelp, setShowHelp] = useState(false); // NEW: help toggle
 
   //Load saved majors
   useEffect(() => {
     setAvailableMajors(majors.map((m) => m.name));
   }, []);
+
   //Loads previously selected major
   useEffect(() => {
     const savedMajor = localStorage.getItem("selectedMajor");
@@ -67,6 +70,7 @@ function Statistics() {
       const text = await res.text();
       const data = JSON.parse(text);
       setSemesterData(data);
+      setNoData(Object.keys(data).length === 0); // check for empty data
       setBarColor(statType === "distribution" ? "#36A2EB" : "#FF6384");
     } catch (err) {
       console.error("Error fetching statistics:", err);
@@ -74,9 +78,75 @@ function Statistics() {
   };
 
   return (
-    <div className="container mt-5 text-center">
+    <div className="container mt-5 text-center" style={{ position: "relative" }}>
       <h1>Statistics by Major</h1>
 
+      {/* Help Button */}
+      <div style={{ margin: "1rem 0" }}>
+        <button
+          onClick={() => setShowHelp(true)}
+          style={{
+            backgroundColor: "#F1B82D",
+            color: "black",
+            border: "2px solid black",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            padding: "6px 18px",
+            cursor: "pointer",
+          }}
+        >
+          Help
+        </button>
+      </div>
+
+      {/* Stylized Help Window */}
+      {showHelp && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            border: "2px solid black",
+            borderRadius: "8px",
+            padding: "20px",
+            maxWidth: "450px",
+            zIndex: 999,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            textAlign: "left",
+          }}
+        >
+          <button
+            onClick={() => setShowHelp(false)}
+            style={{
+              position: "absolute",
+              top: "5px",
+              right: "8px",
+              background: "white",
+              border: "none",
+              fontSize: "1.2rem",
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+          <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
+          <p style={{ marginBottom: 12, textAlign: "center", background: "white", }}>
+            The Statistics page allows you to explore major-specific course or grade data.
+          </p>
+          <ul style={{ paddingLeft: "20px", marginBottom: 0 }}>
+            <li>Select a major from the dropdown.</li>
+            <li>Choose between Course Distribution or Grade Distribution.</li>
+            <li>Optionally filter results by course prefix.</li>
+            <li>Toggle “Show Only Top 10” to limit data to the 10 most common results.</li>
+            <li>Click Submit to generate the chart.</li>
+          </ul>
+        </div>
+      )}
+
+      {/* Major dropdown */}
       <Form.Select
         className="my-4 w-50 mx-auto"
         value={major}
@@ -94,6 +164,7 @@ function Statistics() {
         ))}
       </Form.Select>
 
+      {/* Stat type dropdown */}
       <Form.Select
         className="my-4 w-50 mx-auto"
         value={statType}
@@ -103,6 +174,7 @@ function Statistics() {
         <option value="grades">Grade Distribution by Course</option>
       </Form.Select>
 
+      {/* Filter checkboxes */}
       <Form.Check
         type="checkbox"
         label="Filter by Course Prefix"
@@ -119,6 +191,7 @@ function Statistics() {
         onChange={(e) => setShowTop10(e.target.checked)}
       />
 
+      {/* Prefix filters */}
       {showPrefixFilter && (
         <Form.Group className="mb-3 text-start w-50 mx-auto">
           <Form.Label>Filter by Course Prefix</Form.Label>
@@ -145,6 +218,14 @@ function Statistics() {
         Submit
       </Button>
 
+      {/* Show no data message */}
+      {noData && (
+        <div style={{ color: "#888", marginTop: "1rem", fontSize: "1.2rem" }}>
+          No data found for the selected major.
+        </div>
+      )}
+
+      {/* Chart rendering */}
       {statType === "distribution"
         ? Object.entries(semesterData).map(([semester, courseCounts]) => {
             let filteredEntries = Object.entries(courseCounts).filter(
@@ -180,9 +261,7 @@ function Statistics() {
                   <Bar
                     data={{
                       labels,
-                      datasets: [
-                        { data: values, backgroundColor: barColor },
-                      ],
+                      datasets: [{ data: values, backgroundColor: barColor }],
                     }}
                     options={{
                       responsive: true,
@@ -190,10 +269,7 @@ function Statistics() {
                       scales: {
                         x: { title: { display: true, text: "Course" } },
                         y: {
-                          title: {
-                            display: true,
-                            text: "Percentage of Students",
-                          },
+                          title: { display: true, text: "Percentage of Students" },
                           beginAtZero: true,
                           max: 100,
                         },
@@ -228,9 +304,7 @@ function Statistics() {
                     <Bar
                       data={{
                         labels,
-                        datasets: [
-                          { data: values, backgroundColor: barColor },
-                        ],
+                        datasets: [{ data: values, backgroundColor: barColor }],
                       }}
                       options={{
                         responsive: true,
@@ -238,10 +312,7 @@ function Statistics() {
                         scales: {
                           x: { title: { display: true, text: "Grade" } },
                           y: {
-                            title: {
-                              display: true,
-                              text: "Percentage of Students",
-                            },
+                            title: { display: true, text: "Percentage of Students" },
                             beginAtZero: true,
                             max: 100,
                           },

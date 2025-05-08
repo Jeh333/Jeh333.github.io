@@ -1,4 +1,4 @@
-//Page for editiung and deleting pages
+//Page for editing and deleting pages
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import termsList from "../data/termsList.json";
@@ -9,7 +9,8 @@ const API_URL =
   process.env.NODE_ENV === "production"
     ? process.env.REACT_APP_API_URL
     : process.env.REACT_APP_BACKEND_URL;
-//Convert ful term to code
+
+//Convert full term to code
 const convertToCode = (fullTerm) => {
   const [season, year] = fullTerm.split(" ");
   const seasonMap = {
@@ -23,6 +24,8 @@ const convertToCode = (fullTerm) => {
 const EditPage = () => {
   const [courses, setCourses] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [sortSemesterAsc, setSortSemesterAsc] = useState(true);
+  const [sortPrefixAsc, setSortPrefixAsc] = useState(true);
 
   const grades = [
     "A+",
@@ -42,6 +45,7 @@ const EditPage = () => {
     "N/A",
     "IP",
   ];
+
   //load user course history
   useEffect(() => {
     const fetchCourses = async () => {
@@ -72,12 +76,14 @@ const EditPage = () => {
 
     fetchCourses();
   }, []);
+
   //Handle field change
   const handleChange = (index, field, value) => {
     const updated = [...courses];
     updated[index][field] = value;
     setCourses(updated);
   };
+
   //save updated course
   const handleSave = async (index) => {
     try {
@@ -104,6 +110,7 @@ const EditPage = () => {
       console.error("Save error:", err);
     }
   };
+
   //delete course by id
   const handleDelete = async (id) => {
     try {
@@ -124,9 +131,68 @@ const EditPage = () => {
     }
   };
 
+  const handleSortBySemester = () => {
+    const sorted = [...courses].sort((a, b) => {
+      const semA = a.semester || "";
+      const semB = b.semester || "";
+      return sortSemesterAsc ? semA.localeCompare(semB) : semB.localeCompare(semA);
+    });
+    setCourses(sorted);
+    setSortSemesterAsc(!sortSemesterAsc);
+  };
+
+  const handleSortByPrefix = () => {
+    const sorted = [...courses].sort((a, b) => {
+      const prefixA = (a.programId || "").split(" ")[0].toUpperCase();
+      const prefixB = (b.programId || "").split(" ")[0].toUpperCase();
+      return sortPrefixAsc ? prefixA.localeCompare(prefixB) : prefixB.localeCompare(prefixA);
+    });
+    setCourses(sorted);
+    setSortPrefixAsc(!sortPrefixAsc);
+  };
+
   return (
     <div style={{ padding: "1rem" }}>
       <h2 className="text-center">Edit Your Courses</h2>
+
+      {/* Sort buttons */}
+      <div style={{ display: "flex", justifyContent: "center", gap: "1rem", margin: "1rem 0" }}>
+        <button
+          onClick={handleSortBySemester}
+          style={{
+            backgroundColor: "#F1B82D",
+            color: "black",
+            border: "2px solid black",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            padding: "6px 18px",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
+          }}          
+        >
+          Sort by Semester {sortSemesterAsc ? "▲" : "▼"}
+        </button>
+        <button
+          onClick={handleSortByPrefix}
+          style={{
+            backgroundColor: "#F1B82D",
+            color: "black",
+            border: "2px solid black",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            fontSize: "1rem",
+            padding: "6px 18px",
+            cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+            transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
+          }}          
+        >
+          Sort by Prefix {sortPrefixAsc ? "▲" : "▼"}
+        </button>
+      </div>
+
       <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
         {courses.map((course, index) => (
           <div
