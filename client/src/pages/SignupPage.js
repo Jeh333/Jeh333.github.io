@@ -9,8 +9,6 @@ import {
 import "../styles/global.css";
 import "../styles/SignUpPage.css";
 
-const API_URL = process.env.REACT_APP_API_URL;
-
 function SignupPage() {
   const [formData, setFormData] = useState({
     email: "",

@@ -263,7 +263,7 @@ function VisualizationPage() {
           }
         } else if (d.group === "semester") {
           const rawSemester = d.rawSemesterCode || "Unknown";
-          alert(`Semester label: ${d.id}\nDatabase code: ${rawSemester}`);
+          alert(`Relative: ${d.id}\nActual: ${rawSemester}`);
         }
       })
       .call(
