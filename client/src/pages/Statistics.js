@@ -37,6 +37,7 @@ function Statistics() {
   const [barColor, setBarColor] = useState("#36A2EB");
   const [noData, setNoData] = useState(false);
   const [showHelp, setShowHelp] = useState(false); // NEW: help toggle
+  const [prefixSearch, setPrefixSearch] = useState("");
 
   //Load saved majors
   useEffect(() => {
@@ -140,7 +141,7 @@ function Statistics() {
             <li>Select a major from the dropdown.</li>
             <li>Choose between Course Distribution or Grade Distribution.</li>
             <li>Optionally filter results by course prefix.</li>
-            <li>Toggle “Show Only Top 10” to limit data to the 10 most common results.</li>
+            <li>Toggle "Show Only Top 10" to limit data to the 10 most common results.</li>
             <li>Click Submit to generate the chart.</li>
           </ul>
         </div>
@@ -195,21 +196,64 @@ function Statistics() {
       {showPrefixFilter && (
         <Form.Group className="mb-3 text-start w-50 mx-auto">
           <Form.Label>Filter by Course Prefix</Form.Label>
-          <div className="prefix-filter-box">
-            {COURSE_PREFIXES.map((prefix) => (
-              <Form.Check
-                key={prefix}
-                type="checkbox"
-                label={prefix}
-                checked={selectedPrefixes.includes(prefix)}
-                onChange={(e) => {
-                  const updated = e.target.checked
-                    ? [...selectedPrefixes, prefix]
-                    : selectedPrefixes.filter((p) => p !== prefix);
-                  setSelectedPrefixes(updated);
-                }}
-              />
-            ))}
+          <div className="prefix-filter-box" style={{
+            backgroundColor: "white",
+            border: "2px solid black",
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            padding: "24px 20px 20px 20px",
+            maxWidth: "450px",
+            margin: "0 auto 16px auto",
+            marginTop: "8px",
+          }}>
+            <input
+              type="text"
+              placeholder="Search prefixes..."
+              value={prefixSearch}
+              onChange={e => setPrefixSearch(e.target.value)}
+              style={{
+                width: "100%",
+                marginBottom: 12,
+                padding: "6px 10px",
+                borderRadius: 4,
+                border: "1px solid #ccc",
+                fontSize: "1rem",
+                position: "sticky",
+                top: 0,
+                background: "white",
+                zIndex: 1
+              }}
+            />
+            <div style={{
+              maxHeight: "220px",
+              overflowY: "auto",
+              border: "1px solid #eee",
+              borderRadius: 4,
+              padding: 4,
+              background: "#fafbfc"
+            }}>
+              {COURSE_PREFIXES.filter(prefix =>
+                prefix.toLowerCase().includes(prefixSearch.toLowerCase())
+              ).map((prefix) => (
+                <Form.Check
+                  key={prefix}
+                  type="checkbox"
+                  label={prefix}
+                  checked={selectedPrefixes.includes(prefix)}
+                  onChange={(e) => {
+                    const updated = e.target.checked
+                      ? [...selectedPrefixes, prefix]
+                      : selectedPrefixes.filter((p) => p !== prefix);
+                    setSelectedPrefixes(updated);
+                  }}
+                />
+              ))}
+              {COURSE_PREFIXES.filter(prefix =>
+                prefix.toLowerCase().includes(prefixSearch.toLowerCase())
+              ).length === 0 && (
+                <div style={{ color: "#888", fontSize: "0.95rem", padding: 8 }}>No prefixes found.</div>
+              )}
+            </div>
           </div>
         </Form.Group>
       )}
