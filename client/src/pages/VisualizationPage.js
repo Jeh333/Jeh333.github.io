@@ -40,6 +40,8 @@ function VisualizationPage() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [showTop10, setShowTop10] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [courseModalInfo, setCourseModalInfo] = useState(null);
 
   // Helper function to compute a sortable rank for a semester code (like SP23)
   const getSemesterRank = (code) => {
@@ -246,24 +248,47 @@ function VisualizationPage() {
             return `translate(${dd.x}, ${dd.y + offsetY}) scale(${dd.scale || 1})`;
           });
       })
-      .on("click", async (event, d) => {
+      .on("click", async function (event, d) {
         if (d.group === "course") {
           const courseName = d.displayName;
           try {
             const res = await axios.get(`${API_URL}/courses/${encodeURIComponent(courseName)}`);
             const course = res.data;
-            alert(`Course: ${courseName}\nDescription: ${course.description || "N/A"}\nCredits: ${course.Credits || "N/A"}\nPrerequisites: ${course.Prerequisites || "N/A"}`);
+            setCourseModalInfo({
+              title: courseName,
+              description: course.description || "N/A",
+              credits: course.Credits || "N/A",
+              prerequisites: course.Prerequisites || "N/A",
+            });
+            setShowCourseModal(true);
           } catch (err) {
             if (err.response && err.response.status === 404) {
-              alert(`Course: ${courseName}\n(Additional info not found. Might be a transfer class.)`);
+              setCourseModalInfo({
+                title: courseName,
+                description: "(Additional info not found. Might be a transfer class.)",
+                credits: "N/A",
+                prerequisites: "N/A",
+              });
+              setShowCourseModal(true);
             } else {
-              console.error("Unexpected error fetching course info:", err);
-              alert(`Unexpected error occurred trying to load course information.`);
+              setCourseModalInfo({
+                title: courseName,
+                description: "Unexpected error occurred trying to load course information.",
+                credits: "N/A",
+                prerequisites: "N/A",
+              });
+              setShowCourseModal(true);
             }
           }
         } else if (d.group === "semester") {
           const rawSemester = d.rawSemesterCode || "Unknown";
-          alert(`Relative: ${d.id}\nActual: ${rawSemester}`);
+          setCourseModalInfo({
+            title: `Semester Info`,
+            description: `Relative: ${d.id}\nActual: ${rawSemester}`,
+            credits: "",
+            prerequisites: "",
+          });
+          setShowCourseModal(true);
         }
       })
       .call(
@@ -459,7 +484,13 @@ const handleSingleUser = () => {
       drawGraph([userHistory], selectedSemester, showTop10);
     } else {
       console.warn("No course history found for your account.");
-      alert("No course history found for your account.");
+      setCourseModalInfo({
+        title: "No Course History",
+        description: "No course history found for your account.",
+        credits: "",
+        prerequisites: "",
+      });
+      setShowCourseModal(true);
     }
   };
 
@@ -628,6 +659,21 @@ return (
         position: "relative", // <-- add for absolute positioning inside
       }}
     >
+      {/* Show message if no major is selected and there are no nodes in the visualizer */}
+      {(!selectedMajor && (!svgRef.current || svgRef.current.childNodes.length === 0)) && (
+        <div style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          color: "#888",
+          fontSize: "1.5rem",
+          zIndex: 10,
+          textAlign: "center",
+        }}>
+          Get started: select a major or "Current User".
+        </div>
+      )}
       {/* Show message if no user data to display */}
       {isDataReady && (
         (() => {
@@ -773,6 +819,50 @@ return (
               <li>Clicking on a node will provide you with semester or course details.</li>
             </ul>
           </div>
+        </div>
+      )}
+
+      {showCourseModal && courseModalInfo && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            border: "2px solid black",
+            borderRadius: courseModalInfo.title === "Semester Info" ? "12px" : "8px",
+            padding: courseModalInfo.title === "Semester Info" ? "40px 56px 40px 56px" : "24px 32px 24px 32px",
+            maxWidth: courseModalInfo.title === "Semester Info" ? "700px" : "500px",
+            minWidth: courseModalInfo.title === "Semester Info" ? "400px" : "320px",
+            zIndex: 999,
+            boxShadow: courseModalInfo.title === "Semester Info" ? "0 4px 16px rgba(0,0,0,0.35)" : "0 4px 12px rgba(0,0,0,0.3)",
+            textAlign: "left",
+            wordBreak: "break-word",
+          }}
+        >
+          <button
+            onClick={() => setShowCourseModal(false)}
+            style={{
+              position: "absolute",
+              top: courseModalInfo.title === "Semester Info" ? "10px" : "5px",
+              right: courseModalInfo.title === "Semester Info" ? "16px" : "8px",
+              background: "white",
+              border: "none",
+              fontSize: courseModalInfo.title === "Semester Info" ? "1.5rem" : "1.2rem",
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+          <h3 style={{ marginTop: 0, textAlign: "center", fontSize: courseModalInfo.title === "Semester Info" ? "2.1rem" : "1.3rem", fontWeight: 700, marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12 }}>{courseModalInfo.title}</h3>
+          <div style={{ marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12, whiteSpace: "pre-line", fontSize: courseModalInfo.title === "Semester Info" ? "1.25rem" : "1rem" }}>{courseModalInfo.description}</div>
+          {courseModalInfo.credits && (
+            <div style={{ marginBottom: courseModalInfo.title === "Semester Info" ? 10 : 6, fontSize: courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem" }}><strong>Credits:</strong> {courseModalInfo.credits}</div>
+          )}
+          {courseModalInfo.prerequisites && (
+            <div style={{ marginBottom: courseModalInfo.title === "Semester Info" ? 10 : 6, fontSize: courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem" }}><strong>Prerequisites:</strong> {courseModalInfo.prerequisites}</div>
+          )}
         </div>
       )}
     </div>
