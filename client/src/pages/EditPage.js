@@ -69,31 +69,40 @@ const EditPage = () => {
   };
 
   //save updated course
-  const handleSave = async (index) => {
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const updatedCourses = [...courses];
+const handleSave = async (index) => {
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const updatedCourses = [...courses];
 
-      // Convert semester to short code
-      updatedCourses[index].semester = convertToCode(
-        updatedCourses[index].semester
-      );
+    const courseToUpdate = updatedCourses[index];
 
-      const res = await fetch(`${API_URL}/submit-course-history`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+    // Convert semester to short code
+    const convertedSemester = convertToCode(courseToUpdate.semester);
+
+    const res = await fetch(`${API_URL}/edit-course`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        courseId: courseToUpdate._id,
+        updatedData: {
+          semester: convertedSemester,
+          grade: courseToUpdate.grade,
         },
-        body: JSON.stringify({ courses: updatedCourses }),
-      });
+      }),
+    });
 
-      if (!res.ok) throw new Error("Failed to save course history");
-      setEditingIndex(null);
-    } catch (err) {
-      console.error("Save error:", err);
-    }
-  };
+    if (!res.ok) throw new Error("Failed to save course");
+
+    // Optionally, you could refetch the courses here to refresh state
+    setEditingIndex(null);
+  } catch (err) {
+    console.error("Save error:", err);
+  }
+};
+
 
   //delete course by id
   const handleDelete = async (id) => {
