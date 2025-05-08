@@ -205,6 +205,9 @@ function Statistics() {
             maxWidth: "450px",
             margin: "0 auto 16px auto",
             marginTop: "8px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "stretch",
           }}>
             <input
               type="text"
@@ -217,11 +220,7 @@ function Statistics() {
                 padding: "6px 10px",
                 borderRadius: 4,
                 border: "1px solid #ccc",
-                fontSize: "1rem",
-                position: "sticky",
-                top: 0,
-                background: "white",
-                zIndex: 1
+                fontSize: "1rem"
               }}
             />
             <div style={{
@@ -230,7 +229,8 @@ function Statistics() {
               border: "1px solid #eee",
               borderRadius: 4,
               padding: 4,
-              background: "#fafbfc"
+              background: "#fafbfc",
+              flex: 1,
             }}>
               {COURSE_PREFIXES.filter(prefix =>
                 prefix.toLowerCase().includes(prefixSearch.toLowerCase())
