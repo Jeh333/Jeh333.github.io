@@ -641,7 +641,11 @@ return (
           cursor: selectedMajor ? "pointer" : "not-allowed",
         }}
         disabled={!selectedMajor}
-        title={!selectedMajor ? "Please select a major to use All Users view" : undefined}
+        title={
+          !selectedMajor
+            ? "Please select a major to use All Users view"
+            : undefined
+        }
       >
         All Users
       </button>
@@ -675,22 +679,24 @@ return (
       }}
     >
       {/* Show message if no major is selected and not in current user mode */}
-      {(!selectedMajor && viewMode !== "current") && (
-        <div style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          color: "#888",
-          fontSize: "1.5rem",
-          zIndex: 10,
-          textAlign: "center",
-        }}>
+      {viewMode === "all" && !selectedMajor && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            color: "#888",
+            fontSize: "1.5rem",
+            zIndex: 10,
+            textAlign: "center",
+          }}
+        >
           Get started: select a major or "Current User".
         </div>
       )}
       {/* Show message if no user data to display */}
-      {isDataReady && (
+      {isDataReady &&
         (() => {
           let filtered = histories;
           if ((viewMode === "single" || viewMode === "all") && selectedMajor) {
@@ -709,23 +715,24 @@ return (
             (viewMode === "single" && filteredUsers.length === 0)
           ) {
             return (
-              <div style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                color: "#888",
-                fontSize: "1.5rem",
-                zIndex: 10,
-                textAlign: "center",
-              }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  color: "#888",
+                  fontSize: "1.5rem",
+                  zIndex: 10,
+                  textAlign: "center",
+                }}
+              >
                 No user data to display
               </div>
             );
           }
           return null;
-        })()
-      )}
+        })()}
       {/* Top 10 toggle in top left */}
       <div
         style={{
@@ -734,7 +741,7 @@ return (
           left: 10,
           zIndex: 2,
           display: "flex",
-          gap: "8px"
+          gap: "8px",
         }}
       >
         <button
@@ -770,7 +777,9 @@ return (
             fontSize: "1rem",
             padding: "6px 18px",
             cursor: "pointer",
-            boxShadow: showTop10 ? "0 0 10px #F1B82D" : "0 2px 8px rgba(0,0,0,0.07)",
+            boxShadow: showTop10
+              ? "0 0 10px #F1B82D"
+              : "0 2px 8px rgba(0,0,0,0.07)",
             transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
           }}
           title={
@@ -823,19 +832,55 @@ return (
           </button>
           <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
           <div style={{ background: "white" }}>
-            <p style={{ marginTop: 0, marginBottom: 12, background:"white", textAlign:"center" }}>
-              The visualizer page provides a visual representation of the classes you and other students have taken in a given semester.
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: 12,
+                background: "white",
+                textAlign: "center",
+              }}
+            >
+              The visualizer page provides a visual representation of the
+              classes you and other students have taken in a given semester.
             </p>
             <ul style={{ paddingLeft: "20px", marginTop: 0 }}>
-              <li>The "Select Major" menu allows you to select the major you would like to view data for.</li>
-              <li>The "Select Semester" menu allows you to view data from a specific semester or all semesters.</li>
-              <li>The "Random User" button will select a random anonymous user's data to view from the selected major and semester.</li>
-              <li>The "Prev" and "Next" buttons allow you to toggle between different random users.</li>
-              <li>The "All Users" button will show all data for the selected major and semester.</li>
-              <li>The "Current User" button will show your data for the selected semester.</li>
-              <li>The "Top 10 Courses" filter button in the top left of the chart will display only the ten most popular courses for each displayed semester.</li>
-              <li>Zoom in or out in the chart to navigate to different semester nodes.</li>
-              <li>Clicking on a node will provide you with semester or course details.</li>
+              <li>
+                The "Select Major" menu allows you to select the major you would
+                like to view data for.
+              </li>
+              <li>
+                The "Select Semester" menu allows you to view data from a
+                specific semester or all semesters.
+              </li>
+              <li>
+                The "Random User" button will select a random anonymous user's
+                data to view from the selected major and semester.
+              </li>
+              <li>
+                The "Prev" and "Next" buttons allow you to toggle between
+                different random users.
+              </li>
+              <li>
+                The "All Users" button will show all data for the selected major
+                and semester.
+              </li>
+              <li>
+                The "Current User" button will show your data for the selected
+                semester.
+              </li>
+              <li>
+                The "Top 10 Courses" filter button in the top left of the chart
+                will display only the ten most popular courses for each
+                displayed semester.
+              </li>
+              <li>
+                Zoom in or out in the chart to navigate to different semester
+                nodes.
+              </li>
+              <li>
+                Clicking on a node will provide you with semester or course
+                details.
+              </li>
             </ul>
           </div>
         </div>
@@ -850,12 +895,21 @@ return (
             transform: "translate(-50%, -50%)",
             backgroundColor: "white",
             border: "2px solid black",
-            borderRadius: courseModalInfo.title === "Semester Info" ? "12px" : "8px",
-            padding: courseModalInfo.title === "Semester Info" ? "40px 56px 40px 56px" : "24px 32px 24px 32px",
-            maxWidth: courseModalInfo.title === "Semester Info" ? "700px" : "500px",
-            minWidth: courseModalInfo.title === "Semester Info" ? "400px" : "320px",
+            borderRadius:
+              courseModalInfo.title === "Semester Info" ? "12px" : "8px",
+            padding:
+              courseModalInfo.title === "Semester Info"
+                ? "40px 56px 40px 56px"
+                : "24px 32px 24px 32px",
+            maxWidth:
+              courseModalInfo.title === "Semester Info" ? "700px" : "500px",
+            minWidth:
+              courseModalInfo.title === "Semester Info" ? "400px" : "320px",
             zIndex: 999,
-            boxShadow: courseModalInfo.title === "Semester Info" ? "0 4px 16px rgba(0,0,0,0.35)" : "0 4px 12px rgba(0,0,0,0.3)",
+            boxShadow:
+              courseModalInfo.title === "Semester Info"
+                ? "0 4px 16px rgba(0,0,0,0.35)"
+                : "0 4px 12px rgba(0,0,0,0.3)",
             textAlign: "left",
             wordBreak: "break-word",
           }}
@@ -868,19 +922,58 @@ return (
               right: courseModalInfo.title === "Semester Info" ? "16px" : "8px",
               background: "white",
               border: "none",
-              fontSize: courseModalInfo.title === "Semester Info" ? "1.5rem" : "1.2rem",
+              fontSize:
+                courseModalInfo.title === "Semester Info" ? "1.5rem" : "1.2rem",
               cursor: "pointer",
             }}
           >
             ×
           </button>
-          <h3 style={{ marginTop: 0, textAlign: "center", fontSize: courseModalInfo.title === "Semester Info" ? "2.1rem" : "1.3rem", fontWeight: 700, marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12 }}>{courseModalInfo.title}</h3>
-          <div style={{ marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12, whiteSpace: "pre-line", fontSize: courseModalInfo.title === "Semester Info" ? "1.25rem" : "1rem" }}>{courseModalInfo.description}</div>
+          <h3
+            style={{
+              marginTop: 0,
+              textAlign: "center",
+              fontSize:
+                courseModalInfo.title === "Semester Info" ? "2.1rem" : "1.3rem",
+              fontWeight: 700,
+              marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12,
+            }}
+          >
+            {courseModalInfo.title}
+          </h3>
+          <div
+            style={{
+              marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12,
+              whiteSpace: "pre-line",
+              fontSize:
+                courseModalInfo.title === "Semester Info" ? "1.25rem" : "1rem",
+            }}
+          >
+            {courseModalInfo.description}
+          </div>
           {courseModalInfo.credits && (
-            <div style={{ marginBottom: courseModalInfo.title === "Semester Info" ? 10 : 6, fontSize: courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem" }}><strong>Credits:</strong> {courseModalInfo.credits}</div>
+            <div
+              style={{
+                marginBottom:
+                  courseModalInfo.title === "Semester Info" ? 10 : 6,
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+              }}
+            >
+              <strong>Credits:</strong> {courseModalInfo.credits}
+            </div>
           )}
           {courseModalInfo.prerequisites && (
-            <div style={{ marginBottom: courseModalInfo.title === "Semester Info" ? 10 : 6, fontSize: courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem" }}><strong>Prerequisites:</strong> {courseModalInfo.prerequisites}</div>
+            <div
+              style={{
+                marginBottom:
+                  courseModalInfo.title === "Semester Info" ? 10 : 6,
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+              }}
+            >
+              <strong>Prerequisites:</strong> {courseModalInfo.prerequisites}
+            </div>
           )}
         </div>
       )}
