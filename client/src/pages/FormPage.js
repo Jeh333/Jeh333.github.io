@@ -1,3 +1,4 @@
+//Page for submitting courses and pdf upload
 import React, { useState, useEffect } from "react";
 import { Form, Button, Container, Row, Col } from "react-bootstrap";
 import majors from "../data/majors.json";
@@ -22,17 +23,17 @@ function FormPage() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [major, setMajor] = useState("");
-
+  //Load major from loacl storage
   useEffect(() => {
     const savedMajor = localStorage.getItem("selectedMajor");
     if (savedMajor) {
       setMajor(savedMajor);
     }
   }, []);
-
+  //Preloaded semesters, prefixes and grades
   const terms = termsList;
   const subjects = coursePrefixes;
-
+  
   const grades = [
     "A+",
     "A",
@@ -61,7 +62,7 @@ function FormPage() {
     };
     return `${seasonMap[season] || season}${year.slice(-2)}`;
   };
-
+  //Submission for manual courses
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -73,7 +74,7 @@ function FormPage() {
 
     try {
       const idToken = await auth.currentUser.getIdToken();
-
+      //Check for duplicates from course history
       const res = await fetch(`${API_URL}/course-histories`, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
@@ -85,7 +86,7 @@ function FormPage() {
       );
 
       const existingCourses = userHistory?.courses || [];
-
+      
       const alreadyExists = existingCourses.some(
         (course) =>
           course.programId === newCourse.programId &&
@@ -96,7 +97,7 @@ function FormPage() {
         alert("You’ve already added this course for that semester.");
         return;
       }
-
+      //Submit new course entry
       const response = await fetch(`${API_URL}/submit-course-history`, {
         method: "POST",
         headers: {
@@ -118,9 +119,9 @@ function FormPage() {
       alert("An error occurred while submitting the course.");
     }
   };
-
+  //Handle pdf file selection
   const handleFileChange = (e) => setSelectedFile(e.target.files[0]);
-
+  //Upload pdf to backend
   const handleFileSubmit = async (e) => {
     e.preventDefault();
     if (!selectedFile) {
@@ -151,7 +152,7 @@ function FormPage() {
       alert("Could not connect to server.");
     }
   };
-
+  //Update form input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -159,7 +160,7 @@ function FormPage() {
       [name]: value,
     }));
   };
-
+  //Save major to backend
   const handleSetMajor = async () => {
     try {
       const idToken = await auth.currentUser.getIdToken();

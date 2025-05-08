@@ -1,3 +1,4 @@
+//Page for resetting password
 import React, { useState } from "react";
 import { auth }                from "../firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -10,7 +11,7 @@ export default function ResetPasswordPage() {
   const [message, setMessage] = useState("");
   const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
-
+  //Activated when submit button is hit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -18,6 +19,7 @@ export default function ResetPasswordPage() {
     setError("");
 
     try {
+      //Password reset email sent using Firebase
       await sendPasswordResetEmail(auth, email);
       setMessage(
         "Password reset email sent! Check your inbox (and spam folder)."
