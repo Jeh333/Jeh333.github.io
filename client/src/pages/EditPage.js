@@ -1,4 +1,4 @@
-//Page for editiung and deleting pages
+//Page for editing and deleting pages
 import React, { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import termsList from "../data/termsList.json";
