@@ -4,6 +4,7 @@ import { auth } from "../firebase";
 import termsList from "../data/termsList.json";
 import "../styles/global.css";
 import "../styles/EditPage.css";
+import grades from "../data/grades.json";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -27,24 +28,7 @@ const EditPage = () => {
   const [sortSemesterAsc, setSortSemesterAsc] = useState(true);
   const [sortPrefixAsc, setSortPrefixAsc] = useState(true);
 
-  const grades = [
-    "A+",
-    "A",
-    "A-",
-    "B+",
-    "B",
-    "B-",
-    "C+",
-    "C",
-    "C-",
-    "D+",
-    "D",
-    "D-",
-    "F",
-    "W",
-    "N/A",
-    "IP",
-  ];
+
 
   //load user course history
   useEffect(() => {
@@ -211,7 +195,7 @@ const EditPage = () => {
             {editingIndex === index ? (
               <>
                 <div>
-                  <strong>Program ID:</strong> {course.programId}
+                  <strong>Course:</strong> {course.programId}
                 </div>
                 <select
                   value={course.semester || ""}
@@ -240,7 +224,7 @@ const EditPage = () => {
             ) : (
               <>
                 <div>
-                  <strong>Program ID:</strong> {course.programId}
+                  <strong>Course:</strong> {course.programId}
                 </div>
                 <div>
                   <strong>Semester:</strong> {course.semester}

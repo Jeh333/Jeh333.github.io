@@ -55,13 +55,12 @@ function LoginPage() {
         throw new Error(errData.error || "Failed to log in.");
       }
 
-      // 5) Parse and store backend JWT
       const data = await response.json();
       localStorage.setItem("token", data.token);
       localStorage.setItem("userId", data.userId);
 
       alert("Login successful!");
-      navigate("/visualizer");
+      navigate("/");
     } catch (err) {
       console.error("Login error:", err.message);
       setError(err.message);

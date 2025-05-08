@@ -205,7 +205,8 @@ function VisualizationPage() {
       .data(links)
       .join("line")
       .attr("stroke-width", 1.5);
-  
+    
+      //scale up the nodes when hovered over
     const node = container
       .append("g")
       .attr("stroke", "#fff")
@@ -222,13 +223,12 @@ function VisualizationPage() {
           .attr("fill", d.group === "semester" ? "#3399ff" : "#ff9933")
           .attr("r", d.group === "semester" ? 30 : 14);
   
-        // Scale up labelGroup on hover
+        d.scale = 1.5;
         labelGroups
           .filter((t) => t.id === d.id)
-          .transition().duration(150)
           .attr("transform", (dd) => {
             const offsetY = dd.group === "semester" ? -35 : -20;
-            return `translate(${dd.x}, ${dd.y + offsetY}) scale(1.5)`;
+            return `translate(${dd.x}, ${dd.y + offsetY}) scale(${dd.scale || 1})`;
           });
       })
       .on("mouseout", function (event, d) {
@@ -238,13 +238,12 @@ function VisualizationPage() {
           .attr("fill", d.group === "semester" ? "#1f77b4" : "#ff7f0e")
           .attr("r", d.group === "semester" ? 20 : 8);
   
-        // Reset labelGroup scale
+        d.scale = 1;
         labelGroups
           .filter((t) => t.id === d.id)
-          .transition().duration(150)
           .attr("transform", (dd) => {
             const offsetY = dd.group === "semester" ? -35 : -20;
-            return `translate(${dd.x}, ${dd.y + offsetY}) scale(1)`;
+            return `translate(${dd.x}, ${dd.y + offsetY}) scale(${dd.scale || 1})`;
           });
       })
       .on("click", async (event, d) => {
@@ -264,7 +263,7 @@ function VisualizationPage() {
           }
         } else if (d.group === "semester") {
           const rawSemester = d.rawSemesterCode || "Unknown";
-          alert(`Semester label: ${d.id}\nDatabase code: ${rawSemester}`);
+          alert(`Relative: ${d.id}\nActual: ${rawSemester}`);
         }
       })
       .call(
@@ -281,6 +280,9 @@ function VisualizationPage() {
       .data(nodes)
       .join("g")
       .attr("class", "label-group");
+  
+    // Initialize scale property for each node
+    nodes.forEach((d) => { d.scale = 1; });
   
     labelGroups.each(function (d) {
       const group = d3.select(this);
@@ -318,7 +320,7 @@ function VisualizationPage() {
   
       labelGroups.attr("transform", (d) => {
         const offsetY = d.group === "semester" ? -35 : -20;
-        return `translate(${d.x}, ${d.y + offsetY})`;
+        return `translate(${d.x}, ${d.y + offsetY}) scale(${d.scale || 1})`;
       });
     });
   }, []);
@@ -760,13 +762,13 @@ return (
               The visualizer page provides a visual representation of the classes you and other students have taken in a given semester.
             </p>
             <ul style={{ paddingLeft: "20px", marginTop: 0 }}>
-              <li>The “Select Major” menu allows you to select the major you would like to view data for.</li>
-              <li>The “Select Semester” menu allows you to view data from a specific semester or all semesters.</li>
-              <li>The “Random User” button will select a random anonymous user’s data to view from the selected major and semester.</li>
-              <li>The “Prev” and “Next” buttons allow you to toggle between different random users.</li>
-              <li>The “All Users” button will show all data for the selected major and semester.</li>
-              <li>The “Current User” button will show your data for the selected semester.</li>
-              <li>The “Top 10 Courses” filter button in the top left of the chart will display only the ten most popular courses for each displayed semester.</li>
+              <li>The "Select Major" menu allows you to select the major you would like to view data for.</li>
+              <li>The "Select Semester" menu allows you to view data from a specific semester or all semesters.</li>
+              <li>The "Random User" button will select a random anonymous user's data to view from the selected major and semester.</li>
+              <li>The "Prev" and "Next" buttons allow you to toggle between different random users.</li>
+              <li>The "All Users" button will show all data for the selected major and semester.</li>
+              <li>The "Current User" button will show your data for the selected semester.</li>
+              <li>The "Top 10 Courses" filter button in the top left of the chart will display only the ten most popular courses for each displayed semester.</li>
               <li>Zoom in or out in the chart to navigate to different semester nodes.</li>
               <li>Clicking on a node will provide you with semester or course details.</li>
             </ul>

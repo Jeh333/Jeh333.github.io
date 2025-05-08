@@ -7,6 +7,7 @@ import { auth } from "../firebase";
 import termsList from "../data/termsList";
 import "../styles/global.css";
 import "../styles/FormPage.css";
+import grades from "../data/grades.json"
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -23,7 +24,8 @@ function FormPage() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [major, setMajor] = useState("");
-  //Load major from loacl storage
+  
+  //Load major from local storage
   useEffect(() => {
     const savedMajor = localStorage.getItem("selectedMajor");
     if (savedMajor) {
@@ -33,25 +35,6 @@ function FormPage() {
   //Preloaded semesters, prefixes and grades
   const terms = termsList;
   const subjects = coursePrefixes;
-  
-  const grades = [
-    "A+",
-    "A",
-    "A-",
-    "B+",
-    "B",
-    "B-",
-    "C+",
-    "C",
-    "C-",
-    "D+",
-    "D",
-    "D-",
-    "F",
-    "W",
-    "N/A",
-    "IP",
-  ];
 
   const convertToCode = (fullTerm) => {
     const [season, year] = fullTerm.split(" ");
