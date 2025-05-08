@@ -224,6 +224,12 @@ function VisualizationPage() {
           .attr("r", d.group === "semester" ? 30 : 14);
   
         d.scale = 1.5;
+        labelGroups
+          .filter((t) => t.id === d.id)
+          .attr("transform", (dd) => {
+            const offsetY = dd.group === "semester" ? -35 : -20;
+            return `translate(${dd.x}, ${dd.y + offsetY}) scale(${dd.scale || 1})`;
+          });
       })
       .on("mouseout", function (event, d) {
         d3.select(this)
@@ -233,6 +239,12 @@ function VisualizationPage() {
           .attr("r", d.group === "semester" ? 20 : 8);
   
         d.scale = 1;
+        labelGroups
+          .filter((t) => t.id === d.id)
+          .attr("transform", (dd) => {
+            const offsetY = dd.group === "semester" ? -35 : -20;
+            return `translate(${dd.x}, ${dd.y + offsetY}) scale(${dd.scale || 1})`;
+          });
       })
       .on("click", async (event, d) => {
         if (d.group === "course") {
