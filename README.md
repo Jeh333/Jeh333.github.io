@@ -36,7 +36,6 @@ MUCourseVisualizer is a full-stack web application for visualizing and analyzing
 
 ```
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
 FIREBASE_SERVICE_KEY=your_firebase_service_account_json_string
 PORT=5000
 ```
