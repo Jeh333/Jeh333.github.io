@@ -405,7 +405,6 @@ useEffect(() => {
   const handleSemesterChange = (e) => {
     const semester = e.target.value;
     setSelectedSemester(semester);
-    redrawFilteredGraph(semester, selectedMajor, showTop10);
   };
 
 const redrawFilteredGraph = (semester, major, showTop10Override = showTop10) => {
@@ -445,7 +444,6 @@ const redrawFilteredGraph = (semester, major, showTop10Override = showTop10) => 
     const major = e.target.value;
     setSelectedMajor(major);
     setViewMode("all"); // Reset to all users when major changes
-    redrawFilteredGraph(selectedSemester, major, showTop10);
 
     // After updating, check if there is user data for the selected major
     setTimeout(() => {
