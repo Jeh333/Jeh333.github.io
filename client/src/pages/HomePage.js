@@ -10,13 +10,17 @@ function HomePage() {
       <h1>Welcome to the Student Course Visualizer!</h1>
       <p className="lead mb-5">Track and compare your course data with ease.</p>
       <hr className="my-5" />
+      <h2 className="mb-3">Why does the page look frozen?</h2>
+      <p className="lead mb-5">The server may need to start if used infrequently! This can take up to a minute.</p>
+      <hr className="my-5" />
       <h2 className="mb-3">How does it work?</h2>
       <p className="lead mb-5">Create an account with your UMSystem email, login, and navigate to the form page. 
-        From there you can upload a pdf of your transcript, or manually enter your classes. 
-        You'll be able to see a visual chart of the classes you've taken each semester as well as the courses other students have taken.</p>
-      <p className="lead mb-5">The 'Visualizer' tab allows users to select themselves, a single random user, or all users and view what courses have been taken and what semester they were taken in.</p>
-      <p className="lead mb-5">The 'Statistics' tab allows users to select a major and view course distribution by semester or grade.</p>
-      <p className="lead mb-5">To upload your own data, login to your account, navigate to the form page, select your major, and upload your pdf for quick results. Instructions to download your transcript can be found below.</p>
+        From there you can upload a pdf of your transcript, or manually enter your courses. 
+        You will be able to see a visual chart of the courses you've taken each semester as well as the courses other students have taken.</p>
+      <p className="lead mb-5">The 'Visualizer' tab allows you to select yourself, a random anonymous user, or all users to view what courses have been taken and what semester they were taken in.</p>
+      <p className="lead mb-5">The 'Statistics' tab allows you to select a major and view course distribution by semester or grade.</p>
+      <p className="lead mb-5">The 'Edit' tab allows you to edit or delete courses uploaded to your account.</p>
+      <p className="lead mb-5">To upload your own data, log in to your account, navigate to the form page, select your major, and upload a pdf of your transcript for quick results. Instructions to download your transcript can be found below.</p>
       <hr className="my-5" />
       <h2 className="mb-3">New Here?</h2>
       <p className="lead mb-5">
