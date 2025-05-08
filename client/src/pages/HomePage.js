@@ -10,9 +10,6 @@ function HomePage() {
       <h1>Welcome to the Student Course Visualizer!</h1>
       <p className="lead mb-5">Track and compare your course data with ease.</p>
       <hr className="my-5" />
-      <h2 className="mb-3">Why does the page look frozen?</h2>
-      <p className="lead mb-5">The server may need to start if used infrequently! This can take up to a minute.</p>
-      <hr className="my-5" />
       <h2 className="mb-3">How does it work?</h2>
       <p className="lead mb-5">Create an account with your UMSystem email, login, and navigate to the form page. 
         From there you can upload a pdf of your transcript, or manually enter your courses. 
@@ -55,6 +52,9 @@ function HomePage() {
           page to upload your current progress.
         </li>
       </ol>
+      <hr className="my-5" />
+      <h2 className="mb-3">Why does the page look frozen?</h2>
+      <p className="lead mb-5">The server may need to start if used infrequently! This can take up to a minute.</p>
     </div>
   );
 }

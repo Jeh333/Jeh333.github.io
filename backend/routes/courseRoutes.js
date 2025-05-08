@@ -92,25 +92,17 @@ router.post(
 
       let courseHistory = await CourseHistory.findOne({ firebaseUid });
       if (courseHistory) {
-        const existingKeys = new Set(
-          courseHistory.courses.map((c) => `${c.programId}_${c.semester}`)
+        await CourseHistory.updateOne(
+          { firebaseUid },
+          { $set: { courses: deduplicatedCourses } }
         );
-
-        const uniqueNewCourses = deduplicatedCourses.filter((newCourse) => {
-          const key = `${newCourse.programId}_${newCourse.semester}`;
-          return !existingKeys.has(key);
-        });
-
-        if (uniqueNewCourses.length > 0) {
-          courseHistory.courses.push(...uniqueNewCourses);
-          await courseHistory.save();
-        }
       } else {
         courseHistory = await CourseHistory.create({
           firebaseUid,
           courses: deduplicatedCourses,
         });
       }
+
 
       fs.unlinkSync(file.path);
       return res.status(200).json({
@@ -166,6 +158,39 @@ router.post("/submit-course-history", verifyFirebaseToken, async (req, res) => {
   } catch (err) {
     console.error("Submit history error:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Edit a specific course by _id
+router.post("/edit-course", verifyFirebaseToken, async (req, res) => {
+  const { courseId, updatedData } = req.body;
+  const firebaseUid = req.firebaseUid;
+
+  if (!courseId || !updatedData) {
+    return res.status(400).json({ error: "Missing courseId or updated data" });
+  }
+
+  try {
+    const courseHistory = await CourseHistory.findOne({ firebaseUid });
+    if (!courseHistory) {
+      return res.status(404).json({ error: "Course history not found" });
+    }
+
+    const course = courseHistory.courses.id(courseId);
+    if (!course) {
+      return res.status(404).json({ error: "Course not found" });
+    }
+
+    // Update the fields you want
+    if (updatedData.semester) course.semester = updatedData.semester;
+    if (updatedData.grade) course.grade = updatedData.grade;
+
+    await courseHistory.save();
+
+    res.json({ message: "Course updated successfully", updatedCourse: course });
+  } catch (err) {
+    console.error("Edit course error:", err);
+    res.status(500).json({ error: "Failed to edit course" });
   }
 });
 
