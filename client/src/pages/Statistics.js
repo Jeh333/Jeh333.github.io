@@ -107,77 +107,58 @@ function Statistics() {
 
       {/* Stylized Help Window */}
       {showHelp && (
-        <>
-          {/* Full-screen overlay */}
-          <div
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            border: "2px solid black",
+            borderRadius: "8px",
+            padding: "20px",
+            maxWidth: "450px",
+            zIndex: 999,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            textAlign: "left",
+          }}
+        >
+          <button
             onClick={() => setShowHelp(false)}
             style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0,0,0,0.3)",
-              zIndex: 998,
-            }}
-          ></div>
-
-          {/* Help modal */}
-          <div
-            onClick={(e) => e.stopPropagation()} // prevent outside click from closing
-            style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "white",
-              border: "2px solid black",
-              borderRadius: "8px",
-              padding: "20px",
-              width: "clamp(300px, 90vw, 500px)",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              zIndex: 999,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-              textAlign: "left",
+              position: "absolute",
+              top: "5px",
+              right: "8px",
+              background: "white",
+              border: "none",
+              fontSize: "1.2rem",
+              cursor: "pointer",
             }}
           >
-            <button
-              onClick={() => setShowHelp(false)}
-              style={{
-                position: "absolute",
-                top: "5px",
-                right: "8px",
-                background: "white",
-                border: "none",
-                fontSize: "1.2rem",
-                cursor: "pointer",
-              }}
-            >
-              ×
-            </button>
-            <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
-            <p
-              style={{
-                marginBottom: 12,
-                textAlign: "center",
-                background: "white",
-              }}
-            >
-              The Statistics page allows you to explore major-specific course or grade
-              data.
-            </p>
-            <ul style={{ paddingLeft: "20px", marginBottom: 0 }}>
-              <li>Select a major from the dropdown.</li>
-              <li>Choose between Course Distribution or Grade Distribution.</li>
-              <li>Optionally filter results by course prefix.</li>
-              <li>
-                Toggle "Show Only Top 10" to limit data to the 10 most common results.
-              </li>
-              <li>Click Submit to generate the chart.</li>
-            </ul>
-          </div>
-        </>
+            ×
+          </button>
+          <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
+          <p
+            style={{
+              marginBottom: 12,
+              textAlign: "center",
+              background: "white",
+            }}
+          >
+            The Statistics page allows you to explore major-specific course or
+            grade data.
+          </p>
+          <ul style={{ paddingLeft: "20px", marginBottom: 0 }}>
+            <li>Select a major from the dropdown.</li>
+            <li>Choose between Course Distribution or Grade Distribution.</li>
+            <li>Optionally filter results by course prefix.</li>
+            <li>
+              Toggle "Show Only Top 10" to limit data to the 10 most common
+              results.
+            </li>
+            <li>Click Submit to generate the chart.</li>
+          </ul>
+        </div>
       )}
 
       {/* Major dropdown */}
