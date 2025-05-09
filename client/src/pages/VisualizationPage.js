@@ -197,7 +197,7 @@ function VisualizationPage() {
       .force("link", d3.forceLink(links).id((d) => d.id).distance(100).strength(0.5))
       .force("charge", d3.forceManyBody().strength(-80))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius((d) => (d.group === "semester" ? 45 : 12)))
+      .force("collision", d3.forceCollide().radius((d) => (d.group === "semester" ? 60 : 12)))
    
     const link = container
       .append("g")
@@ -798,22 +798,24 @@ return (
         }}
       ></svg>
 
-      {showHelp && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "white",
-            border: "2px solid black",
-            borderRadius: "8px",
-            padding: "20px",
-            maxWidth: "400px",
-            zIndex: 999,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          }}
-        >
+        {showHelp && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius: "8px",
+              padding: "20px",
+              width: "clamp(300px, 90vw, 500px)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              zIndex: 999,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            }}
+          >
           <button
             onClick={() => setShowHelp(false)}
             style={{
@@ -885,95 +887,115 @@ return (
       )}
 
       {showCourseModal && courseModalInfo && (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "white",
-            border: "2px solid black",
-            borderRadius:
-              courseModalInfo.title === "Semester Info" ? "12px" : "8px",
-            padding:
-              courseModalInfo.title === "Semester Info"
-                ? "40px 56px 40px 56px"
-                : "24px 32px 24px 32px",
-            maxWidth:
-              courseModalInfo.title === "Semester Info" ? "700px" : "500px",
-            minWidth:
-              courseModalInfo.title === "Semester Info" ? "400px" : "320px",
-            zIndex: 999,
-            boxShadow:
-              courseModalInfo.title === "Semester Info"
-                ? "0 4px 16px rgba(0,0,0,0.35)"
-                : "0 4px 12px rgba(0,0,0,0.3)",
-            textAlign: "left",
-            wordBreak: "break-word",
-          }}
-        >
-          <button
+        <>
+          {/* Full-screen background overlay for outside clicks */}
+          <div
             onClick={() => setShowCourseModal(false)}
             style={{
-              position: "absolute",
-              top: courseModalInfo.title === "Semester Info" ? "10px" : "5px",
-              right: courseModalInfo.title === "Semester Info" ? "16px" : "8px",
-              background: "white",
-              border: "none",
-              fontSize:
-                courseModalInfo.title === "Semester Info" ? "1.5rem" : "1.2rem",
-              cursor: "pointer",
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.3)",
+              zIndex: 998,
             }}
-          >
-            ×
-          </button>
-          <h3
-            style={{
-              marginTop: 0,
-              textAlign: "center",
-              fontSize:
-                courseModalInfo.title === "Semester Info" ? "2.1rem" : "1.3rem",
-              fontWeight: 700,
-              marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12,
-            }}
-          >
-            {courseModalInfo.title}
-          </h3>
+          ></div>
+
+          {/* Modal itself */}
           <div
+            onClick={(e) => e.stopPropagation()} // prevent close when clicking inside
             style={{
-              marginBottom: courseModalInfo.title === "Semester Info" ? 18 : 12,
-              whiteSpace: "pre-line",
-              fontSize:
-                courseModalInfo.title === "Semester Info" ? "1.25rem" : "1rem",
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius:
+                courseModalInfo.title === "Semester Info" ? "12px" : "8px",
+              padding:
+                courseModalInfo.title === "Semester Info" ? "40px" : "24px",
+              width:
+                courseModalInfo.title === "Semester Info"
+                  ? "clamp(320px, 90vw, 700px)"
+                  : "clamp(300px, 90vw, 500px)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              zIndex: 999,
+              boxShadow:
+                courseModalInfo.title === "Semester Info"
+                  ? "0 4px 16px rgba(0,0,0,0.35)"
+                  : "0 4px 12px rgba(0,0,0,0.3)",
+              textAlign: "left",
+              wordBreak: "break-word",
             }}
           >
-            {courseModalInfo.description}
+            <button
+              onClick={() => setShowCourseModal(false)}
+              style={{
+                position: "absolute",
+                top: courseModalInfo.title === "Semester Info" ? "10px" : "5px",
+                right: courseModalInfo.title === "Semester Info" ? "16px" : "8px",
+                background: "white",
+                border: "none",
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "1.5rem" : "1.2rem",
+                cursor: "pointer",
+              }}
+            >
+              ×
+            </button>
+            <h3
+              style={{
+                marginTop: 0,
+                textAlign: "center",
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "2.1rem" : "1.3rem",
+                fontWeight: 700,
+                marginBottom:
+                  courseModalInfo.title === "Semester Info" ? 18 : 12,
+              }}
+            >
+              {courseModalInfo.title}
+            </h3>
+            <div
+              style={{
+                marginBottom:
+                  courseModalInfo.title === "Semester Info" ? 18 : 12,
+                whiteSpace: "pre-line",
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "1.25rem" : "1rem",
+              }}
+            >
+              {courseModalInfo.description}
+            </div>
+            {courseModalInfo.credits && (
+              <div
+                style={{
+                  marginBottom:
+                    courseModalInfo.title === "Semester Info" ? 10 : 6,
+                  fontSize:
+                    courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+                }}
+              >
+                <strong>Credits:</strong> {courseModalInfo.credits}
+              </div>
+            )}
+            {courseModalInfo.prerequisites && (
+              <div
+                style={{
+                  marginBottom:
+                    courseModalInfo.title === "Semester Info" ? 10 : 6,
+                  fontSize:
+                    courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+                }}
+              >
+                <strong>Prerequisites:</strong> {courseModalInfo.prerequisites}
+              </div>
+            )}
           </div>
-          {courseModalInfo.credits && (
-            <div
-              style={{
-                marginBottom:
-                  courseModalInfo.title === "Semester Info" ? 10 : 6,
-                fontSize:
-                  courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
-              }}
-            >
-              <strong>Credits:</strong> {courseModalInfo.credits}
-            </div>
-          )}
-          {courseModalInfo.prerequisites && (
-            <div
-              style={{
-                marginBottom:
-                  courseModalInfo.title === "Semester Info" ? 10 : 6,
-                fontSize:
-                  courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
-              }}
-            >
-              <strong>Prerequisites:</strong> {courseModalInfo.prerequisites}
-            </div>
-          )}
-        </div>
+        </>
       )}
     </div>
   </>
