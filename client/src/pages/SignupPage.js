@@ -18,11 +18,13 @@ function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  
   //Handles users changing input fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
+
   //Activated when user hits submit
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -37,6 +39,7 @@ function SignupPage() {
       setLoading(false);
       return;
     }
+
     //Make sure passwords match
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
@@ -51,6 +54,7 @@ function SignupPage() {
         password
       );
       const firebaseUser = userCredential.user;
+
       //Send email verification
       await sendEmailVerification(firebaseUser);
       alert(
@@ -132,7 +136,7 @@ function SignupPage() {
         </div>
       </div>
 
-      {/* ✅ Additional info section styled like other pages */}
+      {/*Additional info section*/}
       <div className="container mt-5 text-center">
         <hr className="my-5" />
         <h2 className="mb-3">Why does the page look frozen?</h2>
