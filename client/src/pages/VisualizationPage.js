@@ -3,6 +3,8 @@ import * as d3 from "d3";
 import axios from "axios";
 import { auth } from "../firebase";
 import majors from "../data/majors.json";
+import "../styles/global.css";
+import "../styles/VisualizationPage.css";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -627,7 +629,7 @@ function VisualizationPage() {
           marginBottom: "0.5rem",
           fontSize: "0.9rem",
           color: "#555",
-          minHeight: "1.5rem", // reserve space even if empty
+          minHeight: "1.5rem", 
         }}
       >
         {(viewMode === "single" || viewMode === "current") &&
@@ -752,14 +754,14 @@ function VisualizationPage() {
 
       <div
         style={{
-          width: "95vw", // 95% of the viewport width, leaves room for scrollbars/margins
-          height: "60vh", // slightly less tall if you want room for buttons/headers
-          margin: "0 auto", // centers it
+          width: "95vw", 
+          height: "60vh", 
+          margin: "0 auto", 
           display: "block",
           backgroundColor: "#f8f9fa",
           boxShadow: "inset 0 0 30px rgba(0,0,0,0.2)",
           borderRadius: "8px",
-          position: "relative", // <-- add for absolute positioning inside
+          position: "relative", 
         }}
       >
         {/* Show message if no major is selected and not in current user mode */}
@@ -936,97 +938,120 @@ function VisualizationPage() {
         ></svg>
 
         {showHelp && (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "white",
-              border: "2px solid black",
-              borderRadius: "8px",
-              padding: "20px",
-              width: "clamp(300px, 90vw, 500px)",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              zIndex: 999,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            }}
-          >
-            <button
+          <>
+            {/* Overlay to capture outside clicks */}
+            <div
               onClick={() => setShowHelp(false)}
               style={{
-                position: "absolute",
-                top: "5px",
-                right: "8px",
-                background: "white",
-                border: "none",
-                fontSize: "1.2rem",
-                cursor: "pointer",
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.3)",
+                zIndex: 998,
+              }}
+            ></div>
+
+            {/* Help window container */}
+            <div
+              onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                backgroundColor: "white",
+                border: "2px solid black",
+                borderRadius: "8px",
+                padding: "24px",
+                width: "clamp(320px, 90vw, 600px)",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                zIndex: 999,
+                boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
+                textAlign: "left",
+                wordBreak: "break-word",
               }}
             >
-              ×
-            </button>
-
-            <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
-            <div style={{ background: "white" }}>
-              <p
+              <button
+                onClick={() => setShowHelp(false)}
                 style={{
-                  marginTop: 0,
-                  marginBottom: 12,
+                  position: "absolute",
+                  top: "8px",
+                  right: "12px",
                   background: "white",
-                  textAlign: "center",
+                  border: "none",
+                  fontSize: "1.4rem",
+                  cursor: "pointer",
                 }}
               >
-                The visualizer page provides a visual representation of the
-                classes you and other students have taken in a given semester.
-              </p>
-              <ul style={{ paddingLeft: "20px", marginTop: 0 }}>
-                <li>
-                  The "Select Major" menu allows you to select the major you
-                  would like to view data for.
-                </li>
-                <li>
-                  The "Select Semester" menu allows you to view data from a
-                  specific semester or all semesters.
-                </li>
-                <li>
-                  The "Random User" button will select a random anonymous user's
-                  data to view from the selected major and semester.
-                </li>
-                <li>
-                  The "Prev" and "Next" buttons allow you to toggle between
-                  different random users.
-                </li>
-                <li>
-                  The "All Users" button will show all data for the selected
-                  major and semester.
-                </li>
-                <li>
-                  The "Current User" button will show your data for the selected
-                  semester.
-                </li>
-                <li>
-                  The "Top 10 Courses" filter button in the top left of the
-                  chart will display only the ten most popular courses for each
-                  displayed semester.
-                </li>
-                <li>
-                  Use the "&lt; Semester" and "Semester &gt;" buttons to move
-                  backward or forward through semesters.
-                </li>
-                <li>
-                  Zoom in or out in the chart to navigate to different semester
-                  nodes.
-                </li>
-                <li>
-                  Clicking on a node will provide you with semester or course
-                  details.
-                </li>
-              </ul>
+                ×
+              </button>
+              <h3
+                style={{
+                  marginTop: 0,
+                  textAlign: "center",
+                  fontSize: "1.8rem",
+                  fontWeight: 700,
+                  marginBottom: 16,
+                }}
+              >
+                Help
+              </h3>
+              <div
+                style={{
+                  fontSize: "1.05rem",
+                  whiteSpace: "pre-line",
+                }}
+              >
+                <p style={{ marginTop: 0, marginBottom: 12, textAlign: "center", background: "white"}}>
+                  The visualizer page provides a visual representation of the classes you
+                  and other students have taken in a given semester.
+                </p>
+                <ul style={{ paddingLeft: "20px", marginTop: 0 }}>
+                  <li>
+                    The "Select Major" menu allows you to select the major you would like
+                    to view data for.
+                  </li>
+                  <li>
+                    The "Select Semester" menu allows you to view data from a specific
+                    semester or all semesters.
+                  </li>
+                  <li>
+                    The "Random User" button will select a random anonymous user's data
+                    to view from the selected major and semester.
+                  </li>
+                  <li>
+                    The "Prev" and "Next" buttons allow you to toggle between different
+                    random users.
+                  </li>
+                  <li>
+                    The "All Users" button will show all data for the selected major and
+                    semester.
+                  </li>
+                  <li>
+                    The "Current User" button will show your data for the selected
+                    semester.
+                  </li>
+                  <li>
+                    The "Top 10 Courses" filter button in the top left of the chart will
+                    display only the ten most popular courses for each displayed semester.
+                  </li>
+                  <li>
+                    Use the "&lt; Semester" and "Semester &gt;" buttons to move backward
+                    or forward through semesters.
+                  </li>
+                  <li>
+                    Zoom in or out in the chart to navigate to different semester nodes.
+                  </li>
+                  <li>Clicking on a node will provide you with semester or course details.</li>
+                </ul>
+              </div>
             </div>
-          </div>
+          </>
         )}
+
 
         {showCourseModal && courseModalInfo && (
           <>
@@ -1044,7 +1069,7 @@ function VisualizationPage() {
               }}
             ></div>
 
-            {/* Modal*/}
+            {/* Node Info Modal*/}
             <div
               onClick={(e) => e.stopPropagation()} 
               style={{
