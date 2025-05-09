@@ -70,87 +70,67 @@ function LoginPage() {
   };
 
 return (
-  <>
-    <div className="login-page">
-      {/* Page header */}
-      <h2 className="mb-4 text-center">Login</h2>
+  <div className="login-page">
+    {/* Page header */}
+    <h2 className="mb-4 text-center">Login</h2>
 
-      {/* Display error message if login fails */}
-      {error && <div className="alert alert-danger">{error}</div>}
+    {/* Display error message if login fails */}
+    {error && <div className="alert alert-danger">{error}</div>}
 
-      {/* Login form */}
-      <form onSubmit={handleSubmit}>
-        {/* Email input field */}
-        <div className="mb-3">
-          <label htmlFor="email" className="form-label">
-            UMSystem Email:
-          </label>
-          <input
-            type="email"
-            id="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="you@umsystem.edu"
-          />
-        </div>
-
-        {/* Password input field */}
-        <div className="mb-3">
-          <label htmlFor="password" className="form-label">
-            Password:
-          </label>
-          <input
-            type="password"
-            id="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Submit button */}
-        <button
-          type="submit"
-          className="btn btn-primary w-100"
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
-
-      {/* Links to signup and password reset */}
-      <div className="text-center mt-3">
-        <p className="mt-2">
-          Forgot Password? Reset{" "}
-          <Link to="/reset-password" className="text-primary">
-            here.
-          </Link>
-        </p>
-        <p>
-          Don't have an account? Sign up{" "}
-          <Link to="/signup" className="text-primary">
-            here.
-          </Link>
-        </p>
+    {/* Login form */}
+    <form onSubmit={handleSubmit}>
+      {/* Email input field */}
+      <div className="mb-3">
+        <label htmlFor="email" className="form-label">
+          UMSystem Email:
+        </label>
+        <input
+          type="email"
+          id="email"
+          className="form-control"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="you@umsystem.edu"
+        />
       </div>
-    </div>
 
-    {/* New content styled like other pages */}
-    <div className="container mt-5 text-center">
-      <hr className="my-5" />
-      <h2 className="mb-3">Why does the page look frozen?</h2>
-      <p className="lead mb-5">
-        The server may need to start if used infrequently! This can take up to a
-        minute.
+      {/* Password input field */}
+      <div className="mb-3">
+        <label htmlFor="password" className="form-label">
+          Password:
+        </label>
+        <input
+          type="password"
+          id="password"
+          className="form-control"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+      </div>
+
+      {/* Submit button: disabled while loading */}
+      <button
+        type="submit"
+        className="btn btn-primary w-100"
+        disabled={loading}
+      >
+        {loading ? "Logging in..." : "Login"}
+      </button>
+    </form>
+
+    {/* Links to signup and password reset */}
+    <div className="text-center mt-3">
+      <p className="mt-2">
+      Forgot Password? Reset <Link to="/reset-password" className="text-primary">here.</Link>
+      </p>
+      <p>
+        Don't have an account? Sign up <Link to="/signup" className="text-primary">here.</Link>
       </p>
     </div>
-  </>
+  </div>
 );
-
-
 }
 
 export default LoginPage;
