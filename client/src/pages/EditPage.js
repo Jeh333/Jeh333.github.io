@@ -39,7 +39,6 @@ const getSemesterRank = (code) => {
 const EditPage = () => {
   const [courses, setCourses] = useState([]);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [originalCourseData, setOriginalCourseData] = useState(null); // store original data for the edited course for restoration on cancel
   const [sortSemesterAsc, setSortSemesterAsc] = useState(true);
   const [sortPrefixAsc, setSortPrefixAsc] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -84,39 +83,40 @@ const EditPage = () => {
   };
 
   //save updated course
-  const handleSave = async (index) => {
-    try {
-      const idToken = await auth.currentUser.getIdToken();
-      const updatedCourses = [...courses];
+const handleSave = async (index) => {
+  try {
+    const idToken = await auth.currentUser.getIdToken();
+    const updatedCourses = [...courses];
 
-      const courseToUpdate = updatedCourses[index];
+    const courseToUpdate = updatedCourses[index];
 
-      // Convert semester to short code
-      const convertedSemester = convertToCode(courseToUpdate.semester);
+    // Convert semester to short code
+    const convertedSemester = convertToCode(courseToUpdate.semester);
 
-      const res = await fetch(`${API_URL}/edit-course`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
+    const res = await fetch(`${API_URL}/edit-course`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({
+        courseId: courseToUpdate._id,
+        updatedData: {
+          semester: convertedSemester,
+          grade: courseToUpdate.grade,
         },
-        body: JSON.stringify({
-          courseId: courseToUpdate._id,
-          updatedData: {
-            semester: convertedSemester,
-            grade: courseToUpdate.grade,
-          },
-        }),
-      });
+      }),
+    });
 
-      if (!res.ok) throw new Error("Failed to save course");
+    if (!res.ok) throw new Error("Failed to save course");
 
-      setEditingIndex(null);
-      setOriginalCourseData(null); // clear stored original
-    } catch (err) {
-      console.error("Save error:", err);
-    }
-  };
+    // Optionally, you could refetch the courses here to refresh state
+    setEditingIndex(null);
+  } catch (err) {
+    console.error("Save error:", err);
+  }
+};
+
 
   //delete course by id
   const handleDelete = async (id) => {
@@ -142,15 +142,6 @@ const EditPage = () => {
   };
 
   const handleSortBySemester = () => {
-    // Restore any editing course before sorting
-    if (editingIndex !== null && originalCourseData) {
-      const updated = [...courses];
-      updated[editingIndex] = { ...originalCourseData };
-      setCourses(updated);
-      setEditingIndex(null);
-      setOriginalCourseData(null);
-    }
-
     const sorted = [...courses].sort((a, b) => {
       const rankA = getSemesterRank(a.semester);
       const rankB = getSemesterRank(b.semester);
@@ -161,15 +152,6 @@ const EditPage = () => {
   };
 
   const handleSortByPrefix = () => {
-    // Restore any editing course before sorting
-    if (editingIndex !== null && originalCourseData) {
-      const updated = [...courses];
-      updated[editingIndex] = { ...originalCourseData };
-      setCourses(updated);
-      setEditingIndex(null);
-      setOriginalCourseData(null);
-    }
-
     const sorted = [...courses].sort((a, b) => {
       const prefixA = (a.programId || "").split(" ")[0].toUpperCase();
       const prefixB = (b.programId || "").split(" ")[0].toUpperCase();
@@ -198,7 +180,7 @@ const EditPage = () => {
             cursor: "pointer",
             boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
             transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
-          }}
+          }}          
         >
           Sort by Semester {sortSemesterAsc ? "▲" : "▼"}
         </button>
@@ -215,7 +197,7 @@ const EditPage = () => {
             cursor: "pointer",
             boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
             transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
-          }}
+          }}          
         >
           Sort by Prefix {sortPrefixAsc ? "▲" : "▼"}
         </button>
@@ -243,7 +225,9 @@ const EditPage = () => {
                 </div>
                 <select
                   value={course.semester || ""}
-                  onChange={(e) => handleChange(index, "semester", e.target.value)}
+                  onChange={(e) =>
+                    handleChange(index, "semester", e.target.value)
+                  }
                 >
                   <option value="">Select Semester</option>
                   {termsList.map((term) => (
@@ -287,19 +271,19 @@ const EditPage = () => {
                 <>
                   <button
                     onClick={() => handleSave(index)}
-                    style={{ backgroundColor: "#007bff", color: "#fff" }}
+                    style={{
+                      backgroundColor: "#007bff",
+                      color: "#fff",
+                    }}
                   >
                     Save
                   </button>
                   <button
-                    onClick={() => {
-                      const updated = [...courses];
-                      updated[editingIndex] = { ...originalCourseData }; // restore edited course
-                      setCourses(updated);
-                      setEditingIndex(null);
-                      setOriginalCourseData(null);
+                    onClick={() => setEditingIndex(null)}
+                    style={{
+                      backgroundColor: "#6c757d",
+                      color: "#fff",
                     }}
-                    style={{ backgroundColor: "#6c757d", color: "#fff" }}
                   >
                     Cancel
                   </button>
@@ -307,11 +291,11 @@ const EditPage = () => {
               ) : (
                 <>
                   <button
-                    onClick={() => {
-                      setOriginalCourseData({ ...course }); // snapshot individual course
-                      setEditingIndex(index);
+                    onClick={() => setEditingIndex(index)}
+                    style={{
+                      backgroundColor: "#007bff",
+                      color: "#fff",
                     }}
-                    style={{ backgroundColor: "#007bff", color: "#fff" }}
                   >
                     Edit
                   </button>
@@ -320,7 +304,10 @@ const EditPage = () => {
                       setCourseToDelete(course);
                       setShowDeleteConfirm(true);
                     }}
-                    style={{ backgroundColor: "#dc3545", color: "#fff" }}
+                    style={{
+                      backgroundColor: "#dc3545",
+                      color: "#fff",
+                    }}
                   >
                     Delete
                   </button>
