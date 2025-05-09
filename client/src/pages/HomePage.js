@@ -11,7 +11,7 @@ function HomePage() {
       <p className="lead mb-5">Track and compare your course data with ease.</p>
       <hr className="my-5" />
       <h2 className="mb-3">How does it work?</h2>
-      <p className="lead mb-5">Create an account with your UMSystem email, login, and navigate to the form page. 
+      <p className="lead mb-5">Create an account with your UMSystem email, log in, and navigate to the form page. 
         From there you can upload a pdf of your transcript, or manually enter your courses. 
         You will be able to see a visual chart of the courses you've taken each semester as well as the courses other students have taken.</p>
       <p className="lead mb-5">The 'Visualizer' tab allows you to select yourself, a random anonymous user, or all users to view what courses have been taken and what semester they were taken in.</p>
