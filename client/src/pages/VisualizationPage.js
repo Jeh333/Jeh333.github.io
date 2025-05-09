@@ -35,6 +35,7 @@ function VisualizationPage() {
 
   // Currently selected major from the dropdown filter
   const [selectedMajor, setSelectedMajor] = useState("");
+  const [isGraphGenerated, setIsGraphGenerated] = useState(false);
 
   // List of users filtered for single user mode
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -501,6 +502,7 @@ const handleSingleUser = () => {
   setCurrentUserIndex(randomIndex);
   setViewMode("single");
   drawGraph([filtered[randomIndex]], selectedSemester, showTop10);
+  setIsGraphGenerated(true);
 };
 
 
@@ -519,6 +521,7 @@ const handleSingleUser = () => {
       setViewMode("current");
       setCurrentUserIndex(-1);
       drawGraph([userHistory], selectedSemester, showTop10);
+      setIsGraphGenerated(true);
     } else {
       console.warn("No course history found for your account.");
       setCourseModalInfo({
@@ -538,6 +541,7 @@ const handleNextUser = () => {
   const nextIndex = (currentUserIndex + 1) % filteredUsers.length;
   setCurrentUserIndex(nextIndex);
   drawGraph([filteredUsers[nextIndex]], selectedSemester, showTop10);
+  setIsGraphGenerated(true);
 };
 
 
@@ -813,9 +817,10 @@ return (
           Top 10 Courses {showTop10 ? "(ON)" : "(OFF)"}
         </button>
 
-        {/* NEW: Previous Semester Button */}
+        {/* Previous Semester Button */}
         <button
           onClick={handlePrevSemester}
+          disabled={!isGraphGenerated}
           style={{
             backgroundColor: "#F1B82D",
             color: "black",
@@ -824,15 +829,17 @@ return (
             fontWeight: "bold",
             fontSize: "1rem",
             padding: "6px 12px",
-            cursor: "pointer",
+            cursor: isGraphGenerated ? "pointer" : "not-allowed",
+            opacity: isGraphGenerated ? 1 : 0.5,
           }}
         >
           &lt; Semester
         </button>
 
-        {/* NEW: Next Semester Button */}
+        {/* Next Semester Button */}
         <button
           onClick={handleNextSemester}
+          disabled={!isGraphGenerated}
           style={{
             backgroundColor: "#F1B82D",
             color: "black",
@@ -841,7 +848,8 @@ return (
             fontWeight: "bold",
             fontSize: "1rem",
             padding: "6px 12px",
-            cursor: "pointer",
+            cursor: isGraphGenerated ? "pointer" : "not-allowed",
+            opacity: isGraphGenerated ? 1 : 0.5,
           }}
         >
           Semester &gt;
