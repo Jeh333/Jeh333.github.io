@@ -627,7 +627,7 @@ function VisualizationPage() {
           marginBottom: "0.5rem",
           fontSize: "0.9rem",
           color: "#555",
-          minHeight: "1.5rem", // reserve space even if empty
+          minHeight: "1.5rem", 
         }}
       >
         {(viewMode === "single" || viewMode === "current") &&
@@ -752,14 +752,14 @@ function VisualizationPage() {
 
       <div
         style={{
-          width: "95vw", // 95% of the viewport width, leaves room for scrollbars/margins
-          height: "60vh", // slightly less tall if you want room for buttons/headers
-          margin: "0 auto", // centers it
+          width: "95vw", 
+          height: "60vh", 
+          margin: "0 auto", 
           display: "block",
           backgroundColor: "#f8f9fa",
           boxShadow: "inset 0 0 30px rgba(0,0,0,0.2)",
           borderRadius: "8px",
-          position: "relative", // <-- add for absolute positioning inside
+          position: "relative", 
         }}
       >
         {/* Show message if no major is selected and not in current user mode */}
