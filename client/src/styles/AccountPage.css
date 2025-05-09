@@ -1,5 +1,6 @@
 /* styles/AccountPage.css */
 
+/* Main container for the account page with centered layout, padding, and styling */
 .account-page {
   max-width: 600px;
   margin: 2rem auto;
@@ -10,14 +11,17 @@
   text-align: center;
 }
 
+/* Style for main page header inside account page */
 .account-page h2 {
   margin-bottom: 1.5rem;
 }
 
+/* Wrapper for sections inside the account page */
 .account-section {
   margin-bottom: 1rem;
 }
 
+/* Button style for account actions */
 .account-button {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
@@ -29,10 +33,12 @@
   transition: background-color 0.2s, color 0.2s;
 }
 
+/* Hover state for the account button to darken the background */
 .account-button:hover {
   background-color: #0b5ed7;
 }
 
+/* Message styling for displaying status or confirmation text */
 .account-message {
   margin-top: 1rem;
   color: green;
