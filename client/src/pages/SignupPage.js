@@ -132,7 +132,6 @@ function SignupPage() {
         </div>
       </div>
 
-      {/* ✅ Additional info section styled like other pages */}
       <div className="container mt-5 text-center">
         <hr className="my-5" />
         <h2 className="mb-3">Why does the page look frozen?</h2>
