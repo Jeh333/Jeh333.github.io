@@ -40,6 +40,8 @@ function VisualizationPage() {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [showTop10, setShowTop10] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [courseModalInfo, setCourseModalInfo] = useState(null);
 
   // Helper function to compute a sortable rank for a semester code (like SP23)
   const getSemesterRank = (code) => {
@@ -195,7 +197,7 @@ function VisualizationPage() {
       .force("link", d3.forceLink(links).id((d) => d.id).distance(100).strength(0.5))
       .force("charge", d3.forceManyBody().strength(-80))
       .force("center", d3.forceCenter(width / 2, height / 2))
-      .force("collision", d3.forceCollide().radius((d) => (d.group === "semester" ? 45 : 12)))
+      .force("collision", d3.forceCollide().radius((d) => (d.group === "semester" ? 60 : 12)))
    
     const link = container
       .append("g")
@@ -246,24 +248,47 @@ function VisualizationPage() {
             return `translate(${dd.x}, ${dd.y + offsetY}) scale(${dd.scale || 1})`;
           });
       })
-      .on("click", async (event, d) => {
+      .on("click", async function (event, d) {
         if (d.group === "course") {
           const courseName = d.displayName;
           try {
             const res = await axios.get(`${API_URL}/courses/${encodeURIComponent(courseName)}`);
             const course = res.data;
-            alert(`Course: ${courseName}\nDescription: ${course.description || "N/A"}\nCredits: ${course.Credits || "N/A"}\nPrerequisites: ${course.Prerequisites || "N/A"}`);
+            setCourseModalInfo({
+              title: courseName,
+              description: course.description || "N/A",
+              credits: course.Credits || "N/A",
+              prerequisites: course.Prerequisites || "N/A",
+            });
+            setShowCourseModal(true);
           } catch (err) {
             if (err.response && err.response.status === 404) {
-              alert(`Course: ${courseName}\n(Additional info not found. Might be a transfer class.)`);
+              setCourseModalInfo({
+                title: courseName,
+                description: "(Additional info not found. Might be a transfer class.)",
+                credits: "N/A",
+                prerequisites: "N/A",
+              });
+              setShowCourseModal(true);
             } else {
-              console.error("Unexpected error fetching course info:", err);
-              alert(`Unexpected error occurred trying to load course information.`);
+              setCourseModalInfo({
+                title: courseName,
+                description: "Unexpected error occurred trying to load course information.",
+                credits: "N/A",
+                prerequisites: "N/A",
+              });
+              setShowCourseModal(true);
             }
           }
         } else if (d.group === "semester") {
           const rawSemester = d.rawSemesterCode || "Unknown";
-          alert(`Relative: ${d.id}\nActual: ${rawSemester}`);
+          setCourseModalInfo({
+            title: `Semester Info`,
+            description: `Relative: ${d.id}\nActual: ${rawSemester}`,
+            credits: "",
+            prerequisites: "",
+          });
+          setShowCourseModal(true);
         }
       })
       .call(
@@ -380,7 +405,6 @@ useEffect(() => {
   const handleSemesterChange = (e) => {
     const semester = e.target.value;
     setSelectedSemester(semester);
-    redrawFilteredGraph(semester, selectedMajor, showTop10);
   };
 
 const redrawFilteredGraph = (semester, major, showTop10Override = showTop10) => {
@@ -419,7 +443,26 @@ const redrawFilteredGraph = (semester, major, showTop10Override = showTop10) => 
   const handleMajorChange = (e) => {
     const major = e.target.value;
     setSelectedMajor(major);
-    redrawFilteredGraph(selectedSemester, major, showTop10);
+    setViewMode("all"); // Reset to all users when major changes
+
+    // After updating, check if there is user data for the selected major
+    setTimeout(() => {
+      let filtered = histories;
+      if (major) {
+        filtered = histories.filter((h) => h.major === major);
+      }
+      if (!filtered || filtered.length === 0) {
+        // Clear the SVG graph
+        if (svgRef.current) {
+          while (svgRef.current.firstChild) {
+            svgRef.current.removeChild(svgRef.current.firstChild);
+          }
+        }
+        // Close any open course modals
+        setShowCourseModal(false);
+        setCourseModalInfo(null);
+      }
+    }, 0);
   };
 const handleSingleUser = () => {
   const filtered = selectedMajor
@@ -444,22 +487,23 @@ const handleSingleUser = () => {
       return;
     }
 
-    const filtered = selectedMajor
-      ? histories.filter((h) => h.major === selectedMajor)
-      : histories;
-
-
-    const userHistory = filtered.find(
+    setSelectedMajor(""); // Reset major dropdown
+    const userHistory = histories.find(
       (history) => history.firebaseUid === loggedInFirebaseUid
     );
-
     if (userHistory) {
       setViewMode("current");
       setCurrentUserIndex(-1);
       drawGraph([userHistory], selectedSemester, showTop10);
     } else {
       console.warn("No course history found for your account.");
-      alert("No course history found for your account.");
+      setCourseModalInfo({
+        title: "No Course History",
+        description: "No course history found for your account.",
+        credits: "",
+        prerequisites: "",
+      });
+      setShowCourseModal(true);
     }
   };
 
@@ -595,7 +639,11 @@ return (
           cursor: selectedMajor ? "pointer" : "not-allowed",
         }}
         disabled={!selectedMajor}
-        title={!selectedMajor ? "Please select a major to use All Users view" : undefined}
+        title={
+          !selectedMajor
+            ? "Please select a major to use All Users view"
+            : undefined
+        }
       >
         All Users
       </button>
@@ -628,8 +676,25 @@ return (
         position: "relative", // <-- add for absolute positioning inside
       }}
     >
+      {/* Show message if no major is selected and not in current user mode */}
+      {viewMode === "all" && !selectedMajor && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            color: "#888",
+            fontSize: "1.5rem",
+            zIndex: 10,
+            textAlign: "center",
+          }}
+        >
+          Get started: select a major or "Current User".
+        </div>
+      )}
       {/* Show message if no user data to display */}
-      {isDataReady && (
+      {isDataReady &&
         (() => {
           let filtered = histories;
           if ((viewMode === "single" || viewMode === "all") && selectedMajor) {
@@ -638,29 +703,34 @@ return (
           if (viewMode === "single" && filteredUsers.length > 0) {
             filtered = filteredUsers;
           }
+          // If no major is selected and not in current user mode, don't show anything else
+          if (!selectedMajor && viewMode !== "current") {
+            return null;
+          }
           if (
             !filtered ||
             filtered.length === 0 ||
             (viewMode === "single" && filteredUsers.length === 0)
           ) {
             return (
-              <div style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                color: "#888",
-                fontSize: "1.5rem",
-                zIndex: 10,
-                textAlign: "center",
-              }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  color: "#888",
+                  fontSize: "1.5rem",
+                  zIndex: 10,
+                  textAlign: "center",
+                }}
+              >
                 No user data to display
               </div>
             );
           }
           return null;
-        })()
-      )}
+        })()}
       {/* Top 10 toggle in top left */}
       <div
         style={{
@@ -669,7 +739,7 @@ return (
           left: 10,
           zIndex: 2,
           display: "flex",
-          gap: "8px"
+          gap: "8px",
         }}
       >
         <button
@@ -705,7 +775,9 @@ return (
             fontSize: "1rem",
             padding: "6px 18px",
             cursor: "pointer",
-            boxShadow: showTop10 ? "0 0 10px #F1B82D" : "0 2px 8px rgba(0,0,0,0.07)",
+            boxShadow: showTop10
+              ? "0 0 10px #F1B82D"
+              : "0 2px 8px rgba(0,0,0,0.07)",
             transition: "background 0.2s, color 0.2s, box-shadow 0.2s",
           }}
           title={
@@ -726,22 +798,24 @@ return (
         }}
       ></svg>
 
-      {showHelp && (
-        <div
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "white",
-            border: "2px solid black",
-            borderRadius: "8px",
-            padding: "20px",
-            maxWidth: "400px",
-            zIndex: 999,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-          }}
-        >
+        {showHelp && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius: "8px",
+              padding: "20px",
+              width: "clamp(300px, 90vw, 500px)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              zIndex: 999,
+              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            }}
+          >
           <button
             onClick={() => setShowHelp(false)}
             style={{
@@ -758,22 +832,170 @@ return (
           </button>
           <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
           <div style={{ background: "white" }}>
-            <p style={{ marginTop: 0, marginBottom: 12, background:"white", textAlign:"center" }}>
-              The visualizer page provides a visual representation of the classes you and other students have taken in a given semester.
+            <p
+              style={{
+                marginTop: 0,
+                marginBottom: 12,
+                background: "white",
+                textAlign: "center",
+              }}
+            >
+              The visualizer page provides a visual representation of the
+              classes you and other students have taken in a given semester.
             </p>
             <ul style={{ paddingLeft: "20px", marginTop: 0 }}>
-              <li>The "Select Major" menu allows you to select the major you would like to view data for.</li>
-              <li>The "Select Semester" menu allows you to view data from a specific semester or all semesters.</li>
-              <li>The "Random User" button will select a random anonymous user's data to view from the selected major and semester.</li>
-              <li>The "Prev" and "Next" buttons allow you to toggle between different random users.</li>
-              <li>The "All Users" button will show all data for the selected major and semester.</li>
-              <li>The "Current User" button will show your data for the selected semester.</li>
-              <li>The "Top 10 Courses" filter button in the top left of the chart will display only the ten most popular courses for each displayed semester.</li>
-              <li>Zoom in or out in the chart to navigate to different semester nodes.</li>
-              <li>Clicking on a node will provide you with semester or course details.</li>
+              <li>
+                The "Select Major" menu allows you to select the major you would
+                like to view data for.
+              </li>
+              <li>
+                The "Select Semester" menu allows you to view data from a
+                specific semester or all semesters.
+              </li>
+              <li>
+                The "Random User" button will select a random anonymous user's
+                data to view from the selected major and semester.
+              </li>
+              <li>
+                The "Prev" and "Next" buttons allow you to toggle between
+                different random users.
+              </li>
+              <li>
+                The "All Users" button will show all data for the selected major
+                and semester.
+              </li>
+              <li>
+                The "Current User" button will show your data for the selected
+                semester.
+              </li>
+              <li>
+                The "Top 10 Courses" filter button in the top left of the chart
+                will display only the ten most popular courses for each
+                displayed semester.
+              </li>
+              <li>
+                Zoom in or out in the chart to navigate to different semester
+                nodes.
+              </li>
+              <li>
+                Clicking on a node will provide you with semester or course
+                details.
+              </li>
             </ul>
           </div>
         </div>
+      )}
+
+      {showCourseModal && courseModalInfo && (
+        <>
+          {/* Full-screen background overlay for outside clicks */}
+          <div
+            onClick={() => setShowCourseModal(false)}
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.3)",
+              zIndex: 998,
+            }}
+          ></div>
+
+          {/* Modal itself */}
+          <div
+            onClick={(e) => e.stopPropagation()} // prevent close when clicking inside
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "white",
+              border: "2px solid black",
+              borderRadius:
+                courseModalInfo.title === "Semester Info" ? "12px" : "8px",
+              padding:
+                courseModalInfo.title === "Semester Info" ? "40px" : "24px",
+              width:
+                courseModalInfo.title === "Semester Info"
+                  ? "clamp(320px, 90vw, 700px)"
+                  : "clamp(300px, 90vw, 500px)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              zIndex: 999,
+              boxShadow:
+                courseModalInfo.title === "Semester Info"
+                  ? "0 4px 16px rgba(0,0,0,0.35)"
+                  : "0 4px 12px rgba(0,0,0,0.3)",
+              textAlign: "left",
+              wordBreak: "break-word",
+            }}
+          >
+            <button
+              onClick={() => setShowCourseModal(false)}
+              style={{
+                position: "absolute",
+                top: courseModalInfo.title === "Semester Info" ? "10px" : "5px",
+                right: courseModalInfo.title === "Semester Info" ? "16px" : "8px",
+                background: "white",
+                border: "none",
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "1.5rem" : "1.2rem",
+                cursor: "pointer",
+              }}
+            >
+              ×
+            </button>
+            <h3
+              style={{
+                marginTop: 0,
+                textAlign: "center",
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "2.1rem" : "1.3rem",
+                fontWeight: 700,
+                marginBottom:
+                  courseModalInfo.title === "Semester Info" ? 18 : 12,
+              }}
+            >
+              {courseModalInfo.title}
+            </h3>
+            <div
+              style={{
+                marginBottom:
+                  courseModalInfo.title === "Semester Info" ? 18 : 12,
+                whiteSpace: "pre-line",
+                fontSize:
+                  courseModalInfo.title === "Semester Info" ? "1.25rem" : "1rem",
+              }}
+            >
+              {courseModalInfo.description}
+            </div>
+            {courseModalInfo.credits && (
+              <div
+                style={{
+                  marginBottom:
+                    courseModalInfo.title === "Semester Info" ? 10 : 6,
+                  fontSize:
+                    courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+                }}
+              >
+                <strong>Credits:</strong> {courseModalInfo.credits}
+              </div>
+            )}
+            {courseModalInfo.prerequisites && (
+              <div
+                style={{
+                  marginBottom:
+                    courseModalInfo.title === "Semester Info" ? 10 : 6,
+                  fontSize:
+                    courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+                }}
+              >
+                <strong>Prerequisites:</strong> {courseModalInfo.prerequisites}
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   </>
