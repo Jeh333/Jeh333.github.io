@@ -15,13 +15,13 @@ function VisualizationPage() {
   // State to hold all course history data from the server
   const [histories, setHistories] = useState([]);
 
-  // Index of the currently selected user (for single user mode)
+  // Index of the currently selected user 
   const [currentUserIndex, setCurrentUserIndex] = useState(0);
 
-  // Current view mode: 'all', 'single', or 'current'
+  // Current view mode: all, single, or current
   const [viewMode, setViewMode] = useState("all");
 
-  // Currently selected semester label (e.g., 'Semester 1')
+  // Currently selected semester label
   const [selectedSemester, setSelectedSemester] = useState("Semester 1");
 
   // List of available semester labels (populated dynamically)
@@ -35,6 +35,7 @@ function VisualizationPage() {
 
   // Currently selected major from the dropdown filter
   const [selectedMajor, setSelectedMajor] = useState("");
+  const [isGraphGenerated, setIsGraphGenerated] = useState(false);
 
   // List of users filtered for single user mode
   const [filteredUsers, setFilteredUsers] = useState([]);
@@ -43,7 +44,7 @@ function VisualizationPage() {
   const [showCourseModal, setShowCourseModal] = useState(false);
   const [courseModalInfo, setCourseModalInfo] = useState(null);
 
-  // Helper function to compute a sortable rank for a semester code (like SP23)
+  // Helper function to compute a sortable rank for a semester code
   const getSemesterRank = (code) => {
     const season = code.slice(0, 2);
     const year = parseInt(code.slice(2), 10);
@@ -66,7 +67,7 @@ function VisualizationPage() {
       if (!history || !history.courses) return;
       const studentCourses = history.courses;
   
-      // Map semesters to labels like 'Semester 1', 'Semester 2', etc.
+      // Map semesters to labels like Semester 1, Semester 2, etc...
       const semesterSet = new Set();
       studentCourses.forEach((c) => c.semester && semesterSet.add(c.semester));
       const sortedSemesters = Array.from(semesterSet).sort(
@@ -298,7 +299,7 @@ function VisualizationPage() {
           .on("end", (event, d) => { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
       );
   
-    // LABEL GROUPS WITH BUBBLE BACKGROUND
+    // label groups with bubble backgrounds
     const labelGroups = container
       .append("g")
       .selectAll("g.label-group")
@@ -333,7 +334,7 @@ function VisualizationPage() {
         .attr("stroke-width", 0.5);
     });
   
-    // LABEL POSITION ABOVE NODE
+    // label position above node
     simulation.on("tick", () => {
       link
         .attr("x1", (d) => d.source.x)
@@ -439,11 +440,35 @@ const redrawFilteredGraph = (semester, major, showTop10Override = showTop10) => 
   }
 };
 
+const handlePrevSemester = () => {
+  if (!availableSemesters || availableSemesters.length === 0) return;
+
+  const currentIndex = availableSemesters.indexOf(selectedSemester);
+  const prevIndex =
+    (currentIndex - 1 + availableSemesters.length) % availableSemesters.length;
+  const prevSemester = availableSemesters[prevIndex];
+
+  setSelectedSemester(prevSemester);
+  redrawFilteredGraph(prevSemester, selectedMajor, showTop10);
+};
+
+const handleNextSemester = () => {
+  if (!availableSemesters || availableSemesters.length === 0) return;
+
+  const currentIndex = availableSemesters.indexOf(selectedSemester);
+  const nextIndex = (currentIndex + 1) % availableSemesters.length;
+  const nextSemester = availableSemesters[nextIndex];
+
+  setSelectedSemester(nextSemester);
+  redrawFilteredGraph(nextSemester, selectedMajor, showTop10);
+};
+
+
 
   const handleMajorChange = (e) => {
     const major = e.target.value;
     setSelectedMajor(major);
-    setViewMode("all"); // Reset to all users when major changes
+    setViewMode("all");
 
     // After updating, check if there is user data for the selected major
     setTimeout(() => {
@@ -477,6 +502,7 @@ const handleSingleUser = () => {
   setCurrentUserIndex(randomIndex);
   setViewMode("single");
   drawGraph([filtered[randomIndex]], selectedSemester, showTop10);
+  setIsGraphGenerated(true);
 };
 
 
@@ -495,6 +521,7 @@ const handleSingleUser = () => {
       setViewMode("current");
       setCurrentUserIndex(-1);
       drawGraph([userHistory], selectedSemester, showTop10);
+      setIsGraphGenerated(true);
     } else {
       console.warn("No course history found for your account.");
       setCourseModalInfo({
@@ -514,6 +541,7 @@ const handleNextUser = () => {
   const nextIndex = (currentUserIndex + 1) % filteredUsers.length;
   setCurrentUserIndex(nextIndex);
   drawGraph([filteredUsers[nextIndex]], selectedSemester, showTop10);
+  setIsGraphGenerated(true);
 };
 
 
@@ -731,7 +759,7 @@ return (
           }
           return null;
         })()}
-      {/* Top 10 toggle in top left */}
+      {/* Top 10 toggle + semester navigation in top left */}
       <div
         style={{
           position: "absolute",
@@ -739,7 +767,9 @@ return (
           left: 10,
           zIndex: 2,
           display: "flex",
+          flexWrap: "wrap", // allows wrapping on narrow screens
           gap: "8px",
+          maxWidth: "95vw", // prevents overflow on tiny screens
         }}
       >
         <button
@@ -750,9 +780,11 @@ return (
             border: "2px solid black",
             borderRadius: "6px",
             fontWeight: "bold",
-            fontSize: "1rem",
-            padding: "6px 18px",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)", // responsive font
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)", // responsive padding
             cursor: "pointer",
+            flex: "1 1 auto", // lets it shrink/grow
+            minWidth: "100px", // avoid collapse
           }}
         >
           Help
@@ -772,9 +804,11 @@ return (
             border: "2px solid #F1B82D",
             borderRadius: "6px",
             fontWeight: "bold",
-            fontSize: "1rem",
-            padding: "6px 18px",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)",
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)",
             cursor: "pointer",
+            flex: "1 1 auto",
+            minWidth: "100px",
             boxShadow: showTop10
               ? "0 0 10px #F1B82D"
               : "0 2px 8px rgba(0,0,0,0.07)",
@@ -788,6 +822,48 @@ return (
         >
           Top 10 Courses {showTop10 ? "(ON)" : "(OFF)"}
         </button>
+
+        {/* Previous Semester Button */}
+        <button
+          onClick={handlePrevSemester}
+          disabled={!isGraphGenerated}
+          style={{
+            backgroundColor: "#F1B82D",
+            color: "black",
+            border: "2px solid black",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)",
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)",
+            cursor: isGraphGenerated ? "pointer" : "not-allowed",
+            opacity: isGraphGenerated ? 1 : 0.5,
+            flex: "1 1 auto",
+            minWidth: "100px",
+          }}
+        >
+          &lt; Semester
+        </button>
+
+        {/* Next Semester Button */}
+        <button
+          onClick={handleNextSemester}
+          disabled={!isGraphGenerated}
+          style={{
+            backgroundColor: "#F1B82D",
+            color: "black",
+            border: "2px solid black",
+            borderRadius: "6px",
+            fontWeight: "bold",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)",
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)",
+            cursor: isGraphGenerated ? "pointer" : "not-allowed",
+            opacity: isGraphGenerated ? 1 : 0.5,
+            flex: "1 1 auto",
+            minWidth: "100px",
+          }}
+        >
+          Semester &gt;
+        </button>
       </div>
 
       <svg
@@ -798,24 +874,24 @@ return (
         }}
       ></svg>
 
-        {showHelp && (
-          <div
-            style={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "white",
-              border: "2px solid black",
-              borderRadius: "8px",
-              padding: "20px",
-              width: "clamp(300px, 90vw, 500px)",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              zIndex: 999,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            }}
-          >
+      {showHelp && (
+        <div
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "white",
+            border: "2px solid black",
+            borderRadius: "8px",
+            padding: "20px",
+            width: "clamp(300px, 90vw, 500px)",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            zIndex: 999,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+          }}
+        >
           <button
             onClick={() => setShowHelp(false)}
             style={{
@@ -830,6 +906,7 @@ return (
           >
             ×
           </button>
+
           <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
           <div style={{ background: "white" }}>
             <p
@@ -872,6 +949,10 @@ return (
                 The "Top 10 Courses" filter button in the top left of the chart
                 will display only the ten most popular courses for each
                 displayed semester.
+              </li>
+              <li>
+                Use the "&lt; Semester" and "Semester &gt;" buttons to move
+                backward or forward through semesters.
               </li>
               <li>
                 Zoom in or out in the chart to navigate to different semester
@@ -936,11 +1017,14 @@ return (
               style={{
                 position: "absolute",
                 top: courseModalInfo.title === "Semester Info" ? "10px" : "5px",
-                right: courseModalInfo.title === "Semester Info" ? "16px" : "8px",
+                right:
+                  courseModalInfo.title === "Semester Info" ? "16px" : "8px",
                 background: "white",
                 border: "none",
                 fontSize:
-                  courseModalInfo.title === "Semester Info" ? "1.5rem" : "1.2rem",
+                  courseModalInfo.title === "Semester Info"
+                    ? "1.5rem"
+                    : "1.2rem",
                 cursor: "pointer",
               }}
             >
@@ -951,7 +1035,9 @@ return (
                 marginTop: 0,
                 textAlign: "center",
                 fontSize:
-                  courseModalInfo.title === "Semester Info" ? "2.1rem" : "1.3rem",
+                  courseModalInfo.title === "Semester Info"
+                    ? "2.1rem"
+                    : "1.3rem",
                 fontWeight: 700,
                 marginBottom:
                   courseModalInfo.title === "Semester Info" ? 18 : 12,
@@ -965,7 +1051,9 @@ return (
                   courseModalInfo.title === "Semester Info" ? 18 : 12,
                 whiteSpace: "pre-line",
                 fontSize:
-                  courseModalInfo.title === "Semester Info" ? "1.25rem" : "1rem",
+                  courseModalInfo.title === "Semester Info"
+                    ? "1.25rem"
+                    : "1rem",
               }}
             >
               {courseModalInfo.description}
@@ -976,7 +1064,9 @@ return (
                   marginBottom:
                     courseModalInfo.title === "Semester Info" ? 10 : 6,
                   fontSize:
-                    courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+                    courseModalInfo.title === "Semester Info"
+                      ? "1.1rem"
+                      : "1rem",
                 }}
               >
                 <strong>Credits:</strong> {courseModalInfo.credits}
@@ -988,7 +1078,9 @@ return (
                   marginBottom:
                     courseModalInfo.title === "Semester Info" ? 10 : 6,
                   fontSize:
-                    courseModalInfo.title === "Semester Info" ? "1.1rem" : "1rem",
+                    courseModalInfo.title === "Semester Info"
+                      ? "1.1rem"
+                      : "1rem",
                 }}
               >
                 <strong>Prerequisites:</strong> {courseModalInfo.prerequisites}
