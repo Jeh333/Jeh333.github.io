@@ -1,15 +1,18 @@
 /* styles/EditPage.css */
 
+/* Main container for the edit page */
 .edit-page {
   padding: 1rem;
   text-align: center;
 }
 
+/* Title styling */
 .edit-title {
   font-family: 'Arial Black', Arial, sans-serif;
   margin-bottom: 2rem;
 }
 
+/* Layout for course cards */
 .edit-courses {
   display: flex;
   flex-wrap: wrap;
@@ -17,6 +20,7 @@
   justify-content: center;
 }
 
+/* Individual course card styling */
 .course-card {
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -28,12 +32,14 @@
   gap: 0.5rem;
 }
 
+/* Container for course action buttons: places buttons side by side with spacing */
 .course-actions {
   display: flex;
   justify-content: space-between;
   margin-top: 0.5rem;
 }
 
+/* Base button styling: shared by save, edit, and delete buttons */
 .btn-save, .btn-edit, .btn-delete {
   padding: 0.5rem;
   border-radius: 5px;
@@ -42,16 +48,19 @@
   font-family: Arial, sans-serif;
 }
 
+/* Save and edit button specific styles: blue background with white text */
 .btn-save, .btn-edit {
   background-color: #007bff;
   color: #fff;
 }
 
+/* Delete button specific styles: red background with white text */
 .btn-delete {
   background-color: #dc3545;
   color: #fff;
 }
 
+/* Hover effect for all buttons: slightly reduce opacity on hover */
 .btn-save:hover, .btn-edit:hover, .btn-delete:hover {
   opacity: 0.9;
 }

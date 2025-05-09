@@ -1,19 +1,23 @@
+/* Main visualization page container */
 .visualization-page {
   text-align: center;
   margin-top: 1rem;
 }
 
+/* Title styling */
 .visualization-title {
   font-family: 'Arial Black', Arial, sans-serif;
   margin-bottom: 1rem;
 }
 
+/* Subtitle styling */
 .visualization-subtitle {
   font-size: 0.9rem;
   color: #555;
   margin-bottom: 1rem;
 }
 
+/* Controls container */
 .visualization-controls {
   display: flex;
   flex-wrap: wrap;
@@ -22,11 +26,13 @@
   margin-bottom: 1rem;
 }
 
+/* Dropdown select input styling for consistent width and padding */
 .control-select {
   width: 250px;
   padding: 0.4rem;
 }
 
+/* Group of buttons */
 .button-group button {
   margin: 0 5px;
   padding: 0.4rem 0.8rem;
@@ -37,16 +43,19 @@
   font-family: Arial, sans-serif;
 }
 
+/* Active button state*/
 .button-group button.active-btn {
   background-color: #F1B82D;
   color: black;
   font-weight: bold;
 }
 
+/* Disabled button state */
 .button-group button:disabled {
   background-color: #ccc;
 }
 
+/* Graph container */
 .visualization-graph {
   display: block;
   margin: 0 auto;

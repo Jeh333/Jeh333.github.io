@@ -5,16 +5,20 @@ import axios from "axios";
 import "../styles/global.css";
 import "../styles/AccountPage.css";
 
+// Determine backend API URL based on environment (production or development)
 const API_URL =
   process.env.NODE_ENV === "production"
     ? process.env.REACT_APP_API_URL
     : process.env.REACT_APP_BACKEND_URL;
 
+// Define the AccountPage component
 function AccountPage() {
+  // Local state to store user's email, major, and status message
   const [email, setEmail] = useState("");
   const [major, setMajor] = useState("");
   const [message, setMessage] = useState("");
 
+  // useEffect runs on mount to subscribe to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -28,13 +32,12 @@ function AccountPage() {
     return () => unsubscribe();
   }, []);
 
+  // Function to retrieve user's major from backend API
   const fetchUserMajor = async (user) => {
     try {
       const idToken = await user.getIdToken();
       const res = await axios.get(`${API_URL}/get-major`, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
+        headers: { Authorization: `Bearer ${idToken}` },
       });
       if (res.data && res.data.major) {
         setMajor(res.data.major);
@@ -43,10 +46,11 @@ function AccountPage() {
       }
     } catch (err) {
       console.error("Error fetching major:", err);
-      setMajor("Unable to load major");
+      setMajor("Unable to load major"); 
     }
   };
 
+  // Function to send password reset email via Firebase
   const handleChangePassword = async () => {
     try {
       await sendPasswordResetEmail(auth, email);
@@ -57,6 +61,7 @@ function AccountPage() {
     }
   };
 
+  // Render account page UI
   return (
     <div className="account-page">
       <h2>My Account</h2>
