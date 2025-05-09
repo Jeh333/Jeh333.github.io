@@ -1,14 +1,15 @@
 /* styles/Statistics.css */
 
+/* Container for the prefix filter box: limits height with vertical scrolling, adds border and padding */
 .prefix-filter-box {
-    max-height: 200px;
-    overflow-y: scroll;
-    border: 1px solid #ccc;
-    padding: 10px;
-  }
-  
-  .chart-container {
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  
+  max-height: 200px;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+/* Container for charts */
+.chart-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
