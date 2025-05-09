@@ -767,7 +767,9 @@ return (
           left: 10,
           zIndex: 2,
           display: "flex",
+          flexWrap: "wrap", // allows wrapping on narrow screens
           gap: "8px",
+          maxWidth: "95vw", // prevents overflow on tiny screens
         }}
       >
         <button
@@ -778,9 +780,11 @@ return (
             border: "2px solid black",
             borderRadius: "6px",
             fontWeight: "bold",
-            fontSize: "1rem",
-            padding: "6px 18px",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)", // responsive font
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)", // responsive padding
             cursor: "pointer",
+            flex: "1 1 auto", // lets it shrink/grow
+            minWidth: "100px", // avoid collapse
           }}
         >
           Help
@@ -800,9 +804,11 @@ return (
             border: "2px solid #F1B82D",
             borderRadius: "6px",
             fontWeight: "bold",
-            fontSize: "1rem",
-            padding: "6px 18px",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)",
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)",
             cursor: "pointer",
+            flex: "1 1 auto",
+            minWidth: "100px",
             boxShadow: showTop10
               ? "0 0 10px #F1B82D"
               : "0 2px 8px rgba(0,0,0,0.07)",
@@ -827,10 +833,12 @@ return (
             border: "2px solid black",
             borderRadius: "6px",
             fontWeight: "bold",
-            fontSize: "1rem",
-            padding: "6px 12px",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)",
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)",
             cursor: isGraphGenerated ? "pointer" : "not-allowed",
             opacity: isGraphGenerated ? 1 : 0.5,
+            flex: "1 1 auto",
+            minWidth: "100px",
           }}
         >
           &lt; Semester
@@ -846,10 +854,12 @@ return (
             border: "2px solid black",
             borderRadius: "6px",
             fontWeight: "bold",
-            fontSize: "1rem",
-            padding: "6px 12px",
+            fontSize: "clamp(0.7rem, 2vw, 1rem)",
+            padding: "clamp(4px, 1vw, 6px) clamp(8px, 2vw, 12px)",
             cursor: isGraphGenerated ? "pointer" : "not-allowed",
             opacity: isGraphGenerated ? 1 : 0.5,
+            flex: "1 1 auto",
+            minWidth: "100px",
           }}
         >
           Semester &gt;
@@ -896,6 +906,7 @@ return (
           >
             ×
           </button>
+
           <h3 style={{ marginTop: 0, textAlign: "center" }}>Help</h3>
           <div style={{ background: "white" }}>
             <p
